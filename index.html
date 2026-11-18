@@ -431,11 +431,11 @@ create policy "User akses data sendiri"
     function getActiveSupabaseConfig() {
       const hardcodedUrl = (SUPABASE_CONFIG.url || '').trim();
       const hardcodedKey = (SUPABASE_CONFIG.anonKey || '').trim();
-      const hasHardcoded = hardcodedUrl.startsWith('http') && !hardcodedUrl.includes('ISI_') &&
-                           hardcodedKey.length > 20 && !hardcodedKey.includes('ISI_');
+      const isHardcoded = hardcodedUrl.startsWith('http') && !hardcodedUrl.includes('ISI_') &&
+                          hardcodedKey.length > 20 && !hardcodedKey.includes('ISI_');
 
-      const finalUrl = hasHardcoded ? hardcodedUrl : (state.supabaseUrl || '').trim();
-      const finalKey = hasHardcoded ? hardcodedKey : (state.supabaseAnonKey || '').trim();
+      const finalUrl = isHardcoded ? hardcodedUrl : (state.supabaseUrl || '').trim();
+      const finalKey = isHardcoded ? hardcodedKey : (state.supabaseAnonKey || '').trim();
       const isConfigured = finalUrl.startsWith('http') && finalKey.length > 20;
 
       return { url: finalUrl, anonKey: finalKey, isConfigured, isHardcoded };
