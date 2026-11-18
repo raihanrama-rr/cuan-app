@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#127084" />
+  <meta id="metaThemeColor" name="theme-color" content="#127084" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Cuan" />
   <title>Cuan — Catatan Keuangan, Suara & Siklus Gajian</title>
 
   <!-- PWA Manifest -->
-  <link rel="manifest" href="./manifest.json" />
+  <link rel="manifest" href="/manifest.json" />
 
   <!-- Inline SVG Data-URI Icons -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23127084'/%3E%3Cstop offset='100%25' stop-color='%230B4F5E'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='116' fill='url(%23g)'/%3E%3Ccircle cx='405' cy='115' r='34' fill='%2310B981' opacity='0.9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-weight='800' font-size='154' fill='%23FFFFFF'%3ECuan%3C/text%3E%3C/svg%3E" />
@@ -33,27 +33,15 @@
   <!-- Supabase JS SDK v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            tealbrand: {
-              DEFAULT: '#127084',
-              dark: '#0E5A6A',
-              darker: '#0B4F5E',
-              tint: '#E6F3F6',
-            }
-          }
-        }
-      }
-    };
-  </script>
+  <style id="dynamicAccentStyle"></style>
 
   <style>
+    :root {
+      --accent: #127084;
+      --accent-dark: #0E5A6A;
+      --accent-darker: #0B4F5E;
+      --accent-tint: #E6F3F6;
+    }
     * {
       -webkit-tap-highlight-color: transparent;
       box-sizing: border-box;
@@ -118,7 +106,7 @@
     <main id="mainView" class="w-full"></main>
 
     <!-- Fixed Bottom Navigation Bar -->
-    <nav id="bottomNav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-100 px-3 py-2 flex items-center justify-around z-40 shadow-[0_-4px_20px_rgba(18,112,132,0.08)]">
+    <nav id="bottomNav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-100 px-3 py-2 flex items-center justify-around z-40 shadow-[0_-4px_20px_rgba(15,23,42,0.08)]">
       <button onclick="switchTab('beranda')" id="tab-beranda" class="flex flex-col items-center justify-center py-1 px-2 text-[#127084] transition-colors">
         <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
         <span class="text-[11px] font-semibold">Beranda</span>
@@ -129,14 +117,12 @@
         <span class="text-[11px] font-medium">Transaksi</span>
       </button>
 
-      <!-- Center Raised Floating Action Button (+) & 🎙️ Suara Pill -->
+      <!-- Center Raised Floating Action Button (+) with Long-Press Mic -->
       <div class="flex flex-col items-center justify-center">
-        <button onclick="openAddModal('manual')" aria-label="Catat Transaksi" class="-mt-8 w-14 h-14 rounded-full bg-[#127084] hover:bg-[#0E5A6A] active:scale-95 shadow-lg flex items-center justify-center text-white border-4 border-[#F4F7F8] transition-all">
-          <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+        <button id="centerPlusBtn" type="button" aria-label="Catat Transaksi (Tahan untuk Suara)" title="Tap untuk catat, tahan untuk suara" class="-mt-8 w-[60px] h-[60px] rounded-full bg-[#127084] hover:bg-[#0E5A6A] active:scale-95 shadow-lg flex items-center justify-center text-white border-4 border-[#F4F7F8] transition-all select-none touch-none">
+          <i data-lucide="plus" class="w-7 h-7 stroke-[2.6]"></i>
         </button>
-        <button onclick="openVoiceModal()" aria-label="Catat Pake Suara" class="-mt-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 hover:bg-[#0B4F5E] text-white text-[10px] font-bold tracking-tight shadow-sm active:scale-95 transition flex items-center gap-1">
-          <span>🎙️ Suara</span>
-        </button>
+        <span class="text-[9px] font-bold text-slate-400 mt-0.5 tracking-tight">Tahan: 🎙️</span>
       </div>
 
       <button onclick="switchTab('laporan')" id="tab-laporan" class="flex flex-col items-center justify-center py-1 px-2 text-slate-400 hover:text-[#127084] transition-colors">
@@ -156,30 +142,72 @@
 
   <script>
     // =========================================================================
-    // 0. KONFIGURASI SUPABASE (SUDAH TERPASANG OTOMATIS)
+    // 0. KONFIGURASI SUPABASE & PENGUMUMAN DEVELOPER
     // =========================================================================
     const SUPABASE_CONFIG = {
       url: 'https://nbzlnyrtpnfsiaeqdcrz.supabase.co',
       anonKey: 'sb_publishable_-4i05ZsjNBvlLE02KDoPxQ_5cMdtpRE'
     };
 
-    const STORAGE_KEY = 'cuan_pwa_auth_prod_v2';
+    // Tambahkan objek pengumuman baru di sini (ubah id-nya setiap rilis info baru)
+    // Otomatis muncul di ikon lonceng notifikasi semua user!
+    const DEVELOPER_ANNOUNCEMENTS = [
+      {
+        id: 'dev_info_v2_1',
+        title: 'Fitur Baru: Edit Transaksi & Tema Warna! 🎨',
+        body: 'Sekarang kamu bisa edit transaksi yang sudah dicatat, tahan tombol (+) untuk rekam suara, dan ganti warna tema di menu Lainnya.',
+        time: 'Info Developer',
+        level: 'info'
+      }
+    ];
 
-    const SUPABASE_SQL_SETUP = `-- Jalankan di Supabase SQL Editor (1x saja)
-create table if not exists public.cuan_user_data (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  payload jsonb not null default '{}'::jsonb,
-  updated_at timestamptz not null default now()
-);
+    const ACCENT_THEMES = {
+      teal: {
+        name: 'Deep Teal',
+        primary: '#127084',
+        dark: '#0E5A6A',
+        darker: '#0B4F5E',
+        tint: '#E6F3F6'
+      },
+      emerald: {
+        name: 'Emerald Forest',
+        primary: '#059669',
+        dark: '#047857',
+        darker: '#065F46',
+        tint: '#ECFDF5'
+      },
+      indigo: {
+        name: 'Royal Indigo',
+        primary: '#4F46E5',
+        dark: '#4338CA',
+        darker: '#3730A3',
+        tint: '#EEF2FF'
+      },
+      ocean: {
+        name: 'Ocean Blue',
+        primary: '#0284C7',
+        dark: '#0369A1',
+        darker: '#075985',
+        tint: '#F0F9FF'
+      },
+      rose: {
+        name: 'Berry Rose',
+        primary: '#E11D48',
+        dark: '#BE123C',
+        darker: '#9F1239',
+        tint: '#FFF1F2'
+      },
+      amber: {
+        name: 'Amber Gold',
+        primary: '#D97706',
+        dark: '#B45309',
+        darker: '#92400E',
+        tint: '#FFFBEB'
+      }
+    };
 
-alter table public.cuan_user_data enable row level security;
-
-drop policy if exists "User akses data sendiri" on public.cuan_user_data;
-create policy "User akses data sendiri"
-  on public.cuan_user_data
-  for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);`;
+    const STORAGE_KEY = 'cuan_pwa_auth_prod_v3';
+    const TOUR_COMPLETED_KEY = 'cuan_onboarding_tour_done_v1';
 
     const INDO_MONTHS = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -228,17 +256,16 @@ create policy "User akses data sendiri"
       activeTab: 'beranda',
       cycleOffset: 0,
       hideBalance: false,
+      accentTheme: 'teal',
       userMode: 'simulation', // 'simulation' | 'supabase'
       isDemoData: true,
       userName: 'Sobat Cuan',
       userEmail: '',
       userAvatar: '',
-      supabaseUrl: '',
-      supabaseAnonKey: '',
       supabaseUserId: '',
       lastSyncedAt: '',
       syncStatus: 'simulation', // 'simulation' | 'synced' | 'saving' | 'error'
-      authModalTab: 'signin', // 'signin' | 'signup'
+      authModalTab: 'signin', // 'signin' | 'signup' | 'forgot'
       defaultPayday: 25,
       monthlyPaydays: {},
       categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
@@ -249,6 +276,7 @@ create policy "User akses data sendiri"
       reminderEnabled: true,
       reminderTime: '20:00',
       lastReminderDate: '',
+      dismissedDevAnnouncementIds: [],
       notifications: [
         {
           id: 'notif_welcome',
@@ -276,8 +304,72 @@ create policy "User akses data sendiri"
     };
 
     // =========================================================================
-    // 2. CORE UTILITIES (CURRENCY, DATE, ESCAPE, STORAGE, TOASTS)
+    // 2. THEME ENGINE & CORE UTILITIES
     // =========================================================================
+    function getActiveTheme() {
+      return ACCENT_THEMES[state.accentTheme] || ACCENT_THEMES.teal;
+    }
+
+    function applyAccentTheme(themeKey, shouldSave = false) {
+      if (themeKey && ACCENT_THEMES[themeKey]) {
+        state.accentTheme = themeKey;
+      }
+      const t = getActiveTheme();
+
+      document.documentElement.style.setProperty('--accent', t.primary);
+      document.documentElement.style.setProperty('--accent-dark', t.dark);
+      document.documentElement.style.setProperty('--accent-darker', t.darker);
+      document.documentElement.style.setProperty('--accent-tint', t.tint);
+
+      const metaTheme = document.getElementById('metaThemeColor');
+      if (metaTheme) metaTheme.setAttribute('content', t.primary);
+
+      const styleTag = document.getElementById('dynamicAccentStyle');
+      if (styleTag) {
+        styleTag.textContent = `
+          .bg-\\[\\#127084\\] { background-color: ${t.primary} !important; }
+          .hover\\:bg-\\[\\#0E5A6A\\]:hover { background-color: ${t.dark} !important; }
+          .hover\\:bg-\\[\\#127084\\]:hover { background-color: ${t.primary} !important; }
+          .text-\\[\\#127084\\] { color: ${t.primary} !important; }
+          .hover\\:text-\\[\\#127084\\]:hover { color: ${t.primary} !important; }
+          .text-\\[\\#0E5A6A\\] { color: ${t.dark} !important; }
+          .text-\\[\\#0B4F5E\\] { color: ${t.darker} !important; }
+          .bg-\\[\\#E6F3F6\\] { background-color: ${t.tint} !important; }
+          .bg-\\[\\#E6F3F6\\]\\/70 { background-color: ${t.tint}B3 !important; }
+          .bg-\\[\\#E6F3F6\\]\\/60 { background-color: ${t.tint}99 !important; }
+          .bg-\\[\\#E6F3F6\\]\\/40 { background-color: ${t.tint}66 !important; }
+          .border-\\[\\#127084\\] { border-color: ${t.primary} !important; }
+          .border-\\[\\#127084\\]\\/15 { border-color: ${t.primary}26 !important; }
+          .border-\\[\\#127084\\]\\/20 { border-color: ${t.primary}33 !important; }
+          .border-\\[\\#127084\\]\\/25 { border-color: ${t.primary}40 !important; }
+          .border-\\[\\#127084\\]\\/30 { border-color: ${t.primary}4D !important; }
+          .border-\\[\\#127084\\]\\/40 { border-color: ${t.primary}66 !important; }
+          .focus\\:border-\\[\\#127084\\]:focus { border-color: ${t.primary} !important; }
+          .peer:checked ~ .peer-checked\\:bg-\\[\\#127084\\] { background-color: ${t.primary} !important; }
+          .group:hover .group-hover\\:bg-\\[\\#127084\\] { background-color: ${t.primary} !important; }
+          .accent-\\[\\#127084\\] { accent-color: ${t.primary} !important; }
+          .from-\\[\\#127084\\] {
+            --tw-gradient-from: ${t.primary} var(--tw-gradient-from-position) !important;
+            --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+          }
+          .via-\\[\\#0E5A6A\\] {
+            --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position) !important;
+            --tw-gradient-stops: var(--tw-gradient-from), ${t.dark} var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+          }
+          .to-\\[\\#0B4F5E\\] {
+            --tw-gradient-to: ${t.darker} var(--tw-gradient-to-position) !important;
+          }
+        `;
+      }
+
+      if (shouldSave) {
+        saveStateToStorage();
+        showToast(`Tema ${t.name} Aktif 🎨`, 'Warna tampilan aplikasi sudah diperbarui.', 'teal');
+        render();
+      }
+    }
+
     function uid(prefix = 'id') {
       return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     }
@@ -333,6 +425,11 @@ create policy "User akses data sendiri"
       return `${d} ${INDO_SHORT_MONTHS[m - 1]} ${y}`;
     }
 
+    function formatTodayIndoHeader() {
+      const now = new Date();
+      return `${INDO_DAYS[now.getDay()]}, ${now.getDate()} ${INDO_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+    }
+
     function saveStateToStorage(triggerCloud = true) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -358,6 +455,9 @@ create policy "User akses data sendiri"
               : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
             transactions: Array.isArray(parsed.transactions) ? parsed.transactions : [],
             notifications: Array.isArray(parsed.notifications) ? parsed.notifications : state.notifications,
+            dismissedDevAnnouncementIds: Array.isArray(parsed.dismissedDevAnnouncementIds)
+              ? parsed.dismissedDevAnnouncementIds
+              : [],
             monthlyPaydays: parsed.monthlyPaydays && typeof parsed.monthlyPaydays === 'object'
               ? parsed.monthlyPaydays
               : {}
@@ -368,26 +468,33 @@ create policy "User akses data sendiri"
       }
     }
 
-    function applyUrlAutoConfigParams() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const sbUrl = params.get('sb_url');
-        const sbKey = params.get('sb_key');
-        if (sbUrl && sbKey) {
-          state.supabaseUrl = sbUrl.trim();
-          state.supabaseAnonKey = sbKey.trim();
-          saveStateToStorage(false);
-          const cleanUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
+    function syncDeveloperAnnouncements() {
+      if (!Array.isArray(DEVELOPER_ANNOUNCEMENTS)) return;
+      let added = false;
+      for (const ann of DEVELOPER_ANNOUNCEMENTS) {
+        const alreadyExists = state.notifications.some(n => n.id === ann.id);
+        const alreadyDismissed = state.dismissedDevAnnouncementIds.includes(ann.id);
+        if (!alreadyExists && !alreadyDismissed) {
+          state.notifications.unshift({
+            id: ann.id,
+            title: ann.title,
+            body: ann.body,
+            time: ann.time || 'Info Developer',
+            level: ann.level || 'info',
+            unread: true
+          });
+          added = true;
         }
-      } catch (e) {}
+      }
+      if (added) saveStateToStorage(false);
     }
 
     function showToast(title, message = '', tone = 'teal') {
       const stack = document.getElementById('toastStack');
       if (!stack) return;
+      const t = getActiveTheme();
       const palette = {
-        teal: 'bg-[#0B4F5E] text-white border-[#127084]',
+        teal: 'text-white',
         mint: 'bg-emerald-700 text-white border-emerald-500',
         amber: 'bg-amber-600 text-white border-amber-400',
         rose: 'bg-rose-600 text-white border-rose-400'
@@ -395,6 +502,10 @@ create policy "User akses data sendiri"
       const cls = palette[tone] || palette.teal;
       const el = document.createElement('div');
       el.className = `pointer-events-auto rounded-2xl px-4 py-3 shadow-xl border ${cls} transition-all duration-300 text-left`;
+      if (tone === 'teal') {
+        el.style.backgroundColor = t.darker;
+        el.style.borderColor = t.primary;
+      }
       el.innerHTML = `
         <div class="text-xs font-extrabold tracking-tight">${escapeHTML(title)}</div>
         ${message ? `<div class="text-[11px] opacity-90 mt-0.5 leading-snug">${escapeHTML(message)}</div>` : ''}
@@ -426,28 +537,14 @@ create policy "User akses data sendiri"
     }
 
     // =========================================================================
-    // 3. SUPABASE CONFIGURATION, AUTH & AUTO CLOUD SYNC
+    // 3. SUPABASE AUTH, PASSWORD RESET & AUTO CLOUD SYNC
     // =========================================================================
-    function getActiveSupabaseConfig() {
-      const hardcodedUrl = (SUPABASE_CONFIG.url || '').trim();
-      const hardcodedKey = (SUPABASE_CONFIG.anonKey || '').trim();
-      const isHardcoded = hardcodedUrl.startsWith('http') && !hardcodedUrl.includes('ISI_') &&
-                          hardcodedKey.length > 20 && !hardcodedKey.includes('ISI_');
-
-      const finalUrl = isHardcoded ? hardcodedUrl : (state.supabaseUrl || '').trim();
-      const finalKey = isHardcoded ? hardcodedKey : (state.supabaseAnonKey || '').trim();
-      const isConfigured = finalUrl.startsWith('http') && finalKey.length > 20;
-
-      return { url: finalUrl, anonKey: finalKey, isConfigured, isHardcoded };
-    }
-
     function getOrInitSupabase() {
-      const cfg = getActiveSupabaseConfig();
-      if (!cfg.isConfigured || !window.supabase) return null;
-      if (!supabaseClient || supabaseClient.__cuanUrl !== cfg.url || supabaseClient.__cuanKey !== cfg.anonKey) {
-        supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
-        supabaseClient.__cuanUrl = cfg.url;
-        supabaseClient.__cuanKey = cfg.anonKey;
+      const url = (SUPABASE_CONFIG.url || '').trim();
+      const anonKey = (SUPABASE_CONFIG.anonKey || '').trim();
+      if (!url.startsWith('http') || anonKey.length < 20 || !window.supabase) return null;
+      if (!supabaseClient) {
+        supabaseClient = window.supabase.createClient(url, anonKey);
       }
       return supabaseClient;
     }
@@ -462,7 +559,7 @@ create policy "User akses data sendiri"
       if (state.syncStatus === 'saving') {
         pill.innerHTML = '⏳ Menyimpan...';
       } else if (state.syncStatus === 'error') {
-        pill.innerHTML = '⚠️ Cek Tabel DB';
+        pill.innerHTML = '⚠️ Cek Koneksi';
       } else {
         pill.innerHTML = '☁️ Tersinkron';
       }
@@ -501,6 +598,9 @@ create policy "User akses data sendiri"
       state.userAvatar = resolvedAvatar;
       state.syncStatus = 'saving';
 
+      // Hapus notifikasi preview data contoh begitu user login
+      state.notifications = state.notifications.filter(n => n.id !== 'notif_welcome');
+
       if (isDifferentUser || wasDemoMode) {
         state.transactions = [];
       }
@@ -529,16 +629,7 @@ create policy "User akses data sendiri"
           if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
             await applyAuthenticatedUserSession(session.user, event === 'SIGNED_IN');
           } else if (event === 'SIGNED_OUT') {
-            state.userMode = 'simulation';
-            state.isDemoData = true;
-            state.supabaseUserId = '';
-            state.userEmail = '';
-            state.userAvatar = '';
-            state.lastSyncedAt = '';
-            state.syncStatus = 'simulation';
-            seedDummyPreviewData(false);
-            saveStateToStorage(false);
-            render();
+            resetToPreviewMode();
           }
         });
       } catch (err) {
@@ -546,12 +637,47 @@ create policy "User akses data sendiri"
       }
     }
 
+    function resetToPreviewMode() {
+      state.userMode = 'simulation';
+      state.isDemoData = true;
+      state.supabaseUserId = '';
+      state.userEmail = '';
+      state.userName = 'Sobat Cuan';
+      state.userAvatar = '';
+      state.lastSyncedAt = '';
+      state.syncStatus = 'simulation';
+      seedDummyPreviewData(false);
+      saveStateToStorage(false);
+      render();
+    }
+
+    function formatSupabaseAuthError(err) {
+      const raw = String((err && (err.message || err.error_description || err.msg)) || err || '');
+      const lower = raw.toLowerCase();
+      if (lower.includes('error sending confirmation email') || lower.includes('sending confirmation')) {
+        return 'Gagal mengirim email verifikasi dari server. Pastikan pengaturan email di proyek sudah aktif.';
+      }
+      if (lower.includes('rate limit')) {
+        return 'Terlalu banyak percobaan dalam waktu singkat. Coba tunggu beberapa menit lagi ya.';
+      }
+      if (lower.includes('already registered') || lower.includes('already exists')) {
+        return 'Email ini sudah terdaftar. Silakan pindah ke tab "Masuk" untuk login.';
+      }
+      if (lower.includes('invalid login credentials')) {
+        return 'Email atau password salah. Cek kembali huruf besar/kecilnya ya.';
+      }
+      if (lower.includes('email not confirmed')) {
+        return 'Email belum dikonfirmasi. Cek inbox atau folder Spam email kamu.';
+      }
+      if (lower.includes('failed to fetch') || lower.includes('network')) {
+        return 'Koneksi ke server terputus. Cek koneksi internet HP kamu.';
+      }
+      return raw || 'Terjadi kendala saat proses autentikasi.';
+    }
+
     async function handleGoogleLoginClick() {
       const sb = getOrInitSupabase();
-      if (!sb) {
-        showToast('Supabase Belum Diset', 'Isi Project URL & Anon Key Supabase dulu di tab Lainnya -> Setup Database Supabase.', 'amber');
-        return;
-      }
+      if (!sb) return;
       try {
         const redirectTo = window.location.origin + window.location.pathname;
         const { error } = await sb.auth.signInWithOAuth({
@@ -560,19 +686,16 @@ create policy "User akses data sendiri"
         });
         if (error) throw error;
       } catch (err) {
-        showToast('Gagal Login Google', err.message || 'Pastikan Google Provider sudah aktif di Supabase.', 'rose');
+        showToast('Gagal Login Google', formatSupabaseAuthError(err), 'rose');
       }
     }
 
     async function handleEmailAuthSubmit(e) {
       e.preventDefault();
       const sb = getOrInitSupabase();
-      if (!sb) {
-        showToast('Supabase Belum Diset', 'Isi Project URL & Anon Key Supabase dulu di tab Lainnya -> Setup Database Supabase.', 'amber');
-        return;
-      }
+      if (!sb) return;
 
-      const email = document.getElementById('authEmailInput').value.trim();
+      const email = document.getElementById('authEmailInput').value.trim().toLowerCase();
       const password = document.getElementById('authPasswordInput').value;
       const nameInput = document.getElementById('authNameInput');
       const fullName = nameInput ? nameInput.value.trim() : '';
@@ -605,7 +728,27 @@ create policy "User akses data sendiri"
           }
         }
       } catch (err) {
-        showToast('Autentikasi Gagal', err.message || 'Periksa kembali email & password kamu.', 'rose');
+        showToast('Autentikasi Gagal', formatSupabaseAuthError(err), 'rose');
+      }
+    }
+
+    async function handleForgotPasswordSubmit(e) {
+      e.preventDefault();
+      const sb = getOrInitSupabase();
+      if (!sb) return;
+
+      const email = document.getElementById('forgotEmailInput').value.trim().toLowerCase();
+      if (!email) return;
+
+      try {
+        const redirectTo = window.location.origin + window.location.pathname;
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) throw error;
+        showToast('Link Reset Sandi Terkirim 📩', `Cek inbox atau folder spam email ${email} untuk atur ulang sandi.`, 'mint');
+        state.authModalTab = 'signin';
+        openAccountModal();
+      } catch (err) {
+        showToast('Gagal Kirim Reset Sandi', formatSupabaseAuthError(err), 'rose');
       }
     }
 
@@ -614,18 +757,9 @@ create policy "User akses data sendiri"
       if (sb) {
         try { await sb.auth.signOut(); } catch (e) {}
       }
-      state.userMode = 'simulation';
-      state.isDemoData = true;
-      state.supabaseUserId = '';
-      state.userEmail = '';
-      state.userAvatar = '';
-      state.lastSyncedAt = '';
-      state.syncStatus = 'simulation';
-      seedDummyPreviewData(false);
-      saveStateToStorage(false);
+      resetToPreviewMode();
       closeModal();
-      showToast('Logout Berhasil 👋', 'Kembali ke tampilan preview dengan data contoh.', 'teal');
-      render();
+      showToast('Logout Berhasil 👋', 'Kamu sudah keluar dari akun.', 'teal');
     }
 
     async function syncUserData(silent = false) {
@@ -638,6 +772,7 @@ create policy "User akses data sendiri"
 
       const payload = {
         userName: state.userName,
+        accentTheme: state.accentTheme,
         defaultPayday: state.defaultPayday,
         monthlyPaydays: state.monthlyPaydays,
         categories: state.categories,
@@ -662,11 +797,11 @@ create policy "User akses data sendiri"
         state.syncStatus = 'synced';
         saveStateToStorage(false);
         updateSyncStatusPillUI();
-        if (!silent) showToast('Tersinkron ke Cloud ☁️', 'Semua catatan cuanmu aman di Supabase.', 'mint');
+        if (!silent) showToast('Tersinkron ke Cloud ☁️', 'Semua catatan cuanmu aman di cloud.', 'mint');
       } catch (err) {
         state.syncStatus = 'error';
         updateSyncStatusPillUI();
-        if (!silent) showToast('Gagal Sinkronisasi', err.message || 'Pastikan tabel cuan_user_data sudah dibuat di Supabase.', 'rose');
+        if (!silent) showToast('Gagal Sinkronisasi', err.message || 'Cek koneksi internet kamu.', 'rose');
       }
     }
 
@@ -692,6 +827,10 @@ create policy "User akses data sendiri"
           if (p.monthlyPaydays && typeof p.monthlyPaydays === 'object') state.monthlyPaydays = p.monthlyPaydays;
           if (typeof p.reminderEnabled === 'boolean') state.reminderEnabled = p.reminderEnabled;
           if (p.reminderTime) state.reminderTime = p.reminderTime;
+          if (p.accentTheme && ACCENT_THEMES[p.accentTheme]) {
+            state.accentTheme = p.accentTheme;
+            applyAccentTheme(p.accentTheme, false);
+          }
           state.isDemoData = false;
           state.syncStatus = 'synced';
           saveStateToStorage(false);
@@ -703,24 +842,8 @@ create policy "User akses data sendiri"
       } catch (err) {
         state.syncStatus = 'error';
         updateSyncStatusPillUI();
-        if (!silent) showToast('Gagal Memuat Cloud', err.message || 'Cek konfigurasi tabel Supabase.', 'rose');
+        if (!silent) showToast('Gagal Memuat Cloud', err.message || 'Cek koneksi internet kamu.', 'rose');
       }
-    }
-
-    function saveOwnerSupabaseConfig(e) {
-      e.preventDefault();
-      const urlVal = document.getElementById('ownerSbUrlInput').value.trim();
-      const keyVal = document.getElementById('ownerSbKeyInput').value.trim();
-      state.supabaseUrl = urlVal;
-      state.supabaseAnonKey = keyVal;
-      saveStateToStorage(false);
-      showToast('Konfigurasi Tersimpan ✅', 'Kredensial Supabase siap digunakan untuk login.', 'mint');
-      render();
-    }
-
-    function copySqlSetup() {
-      navigator.clipboard?.writeText(SUPABASE_SQL_SETUP);
-      showToast('SQL Tersalin! 📋', 'Tempel dan jalankan di SQL Editor Supabase kamu.', 'teal');
     }
 
     // =========================================================================
@@ -766,13 +889,20 @@ create policy "User akses data sendiri"
 
       const startISO = toISODate(startDate);
       const endISO = toISODate(endDate);
-      const label = `${INDO_MONTHS[startMonth]} ${startYear}`;
+
+      // Jika siklus dimulai di akhir bulan sebelumnya (misal 25 Okt - 24 Nov),
+      // tampilkan nama bulan aktifnya (November 2026) agar sesuai bulan berjalan.
+      const displayMonth = startDay === 1 ? startMonth : nextMonth;
+      const displayYear = startDay === 1 ? startYear : nextYear;
+      const label = `${INDO_MONTHS[displayMonth]} ${displayYear}`;
       const rangeText = `${startDate.getDate()} ${INDO_SHORT_MONTHS[startMonth]} – ${endDate.getDate()} ${INDO_SHORT_MONTHS[nextMonth]} ${nextYear}`;
 
       return {
         offset,
         startYear,
         startMonth,
+        displayMonth,
+        displayYear,
         monthKey: getMonthKey(startYear, startMonth),
         startDate,
         endDate,
@@ -822,7 +952,6 @@ create policy "User akses data sendiri"
     function parseIndonesianSpokenAmount(segmentText) {
       const cleaned = segmentText.toLowerCase().replace(/rp\.?/gi, ' ').trim();
 
-      // 1. Cek pola angka eksplisit (contoh: "25.000", "25rb", "1,5jt", "50k")
       const explicitMatch = cleaned.match(/(\d+(?:[.,]\d+)?)\s*(jt|juta|rb|ribu|k|ratus)?\b/);
       if (explicitMatch) {
         let numStr = explicitMatch[1];
@@ -844,7 +973,6 @@ create policy "User akses data sendiri"
         if (parsed > 0) return parsed;
       }
 
-      // 2. Cek slang nominal Indonesia
       const slangMap = [
         { regex: /\bsetengah\s+juta\b/, val: 500000 },
         { regex: /\bsejuta\b/, val: 1000000 },
@@ -860,7 +988,6 @@ create policy "User akses data sendiri"
         if (s.regex.test(cleaned)) return s.val;
       }
 
-      // 3. Konversi kata bilangan bahasa Indonesia ("dua puluh lima ribu", "tiga ratus lima puluh ribu")
       const wordNums = {
         nol: 0, satu: 1, se: 1, dua: 2, tiga: 3, empat: 4,
         lima: 5, enam: 6, tujuh: 7, delapan: 8, sembilan: 9
@@ -1071,7 +1198,7 @@ create policy "User akses data sendiri"
               </div>
             </div>
           `).join('')
-        : `<div class="text-center py-4 text-[11px] text-slate-400">Belum ada transaksi terdeteksi. Coba ucapkan atau klik contoh suara di bawah.</div>`;
+        : `<div class="text-center py-4 text-[11px] text-slate-400">Belum ada transaksi terdeteksi. Tap tombol mic di atas dan sebutkan transaksi kamu.</div>`;
 
       showModal(`
         <div class="flex items-center justify-between mb-3">
@@ -1119,22 +1246,6 @@ create policy "User akses data sendiri"
           </div>
         </div>
 
-        <!-- Quick Simulation Chips -->
-        <div class="mb-3">
-          <div class="text-[10px] font-bold text-slate-400 mb-1.5">Tes Cepat Kalimat Suara:</div>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="simulateVoiceInput('Kopi susu dua puluh dua ribu dan naik ojol delapan belas ribu')" class="px-2.5 py-1 rounded-full bg-[#E6F3F6] text-[#127084] text-[10px] font-bold hover:bg-[#127084] hover:text-white transition">
-              "Kopi 22rb & ojol 18rb"
-            </button>
-            <button type="button" onclick="simulateVoiceInput('Makan siang ayam geprek goceng tambah es teh dan bensin tiga puluh ribu')" class="px-2.5 py-1 rounded-full bg-[#E6F3F6] text-[#127084] text-[10px] font-bold hover:bg-[#127084] hover:text-white transition">
-              "Geprek & bensin 30rb"
-            </button>
-            <button type="button" onclick="simulateVoiceInput('Dapat cuan freelance setengah juta')" class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition">
-              "Cuan freelance 500rb"
-            </button>
-          </div>
-        </div>
-
         <!-- Parsed Draft Cards -->
         <div class="space-y-2 max-h-48 overflow-y-auto pr-0.5 mb-3">
           ${draftsHTML}
@@ -1165,7 +1276,7 @@ create policy "User akses data sendiri"
 
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRec) {
-        voiceRuntime.statusMessage = 'Browser ini membatasi mikrofon. Gunakan tombol "Tes Cepat Kalimat Suara" di bawah.';
+        voiceRuntime.statusMessage = 'Browser ini belum mendukung pengenalan suara. Gunakan Google Chrome di HP.';
         renderVoiceModalBody();
         return;
       }
@@ -1203,7 +1314,7 @@ create policy "User akses data sendiri"
 
         rec.onerror = (event) => {
           voiceRuntime.isListening = false;
-          voiceRuntime.statusMessage = `Mikrofon tidak tersedia (${event.error}). Coba klik contoh kalimat suara di bawah.`;
+          voiceRuntime.statusMessage = `Izin mikrofon diperlukan (${event.error}). Pastikan izin mic browser aktif.`;
           renderVoiceModalBody();
         };
 
@@ -1212,7 +1323,7 @@ create policy "User akses data sendiri"
           voiceRuntime.interimTranscript = '';
           voiceRuntime.statusMessage = voiceRuntime.draftItems.length > 0
             ? `Berhasil mendeteksi ${voiceRuntime.draftItems.length} transaksi!`
-            : 'Selesai merekam. Tap mic lagi atau gunakan contoh suara.';
+            : 'Selesai merekam. Tap tombol mic lagi jika ingin mengulang.';
           renderVoiceModalBody();
         };
 
@@ -1220,18 +1331,9 @@ create policy "User akses data sendiri"
         rec.start();
       } catch (err) {
         voiceRuntime.isListening = false;
-        voiceRuntime.statusMessage = 'Izin mikrofon dibatasi. Gunakan tombol Tes Cepat di bawah.';
+        voiceRuntime.statusMessage = 'Gagal mengakses mikrofon. Periksa izin aplikasi di pengaturan HP.';
         renderVoiceModalBody();
       }
-    }
-
-    function simulateVoiceInput(sampleText) {
-      stopVoiceListening();
-      voiceRuntime.transcript = sampleText;
-      voiceRuntime.interimTranscript = '';
-      voiceRuntime.draftItems = parseMultiTransactionsFromText(sampleText);
-      voiceRuntime.statusMessage = `Berhasil mendeteksi ${voiceRuntime.draftItems.length} transaksi dari suara!`;
-      renderVoiceModalBody();
     }
 
     function updateVoiceDraftItem(idx, field, val) {
@@ -1362,7 +1464,7 @@ create policy "User akses data sendiri"
         : state.syncStatus === 'saving'
         ? '⏳ Menyimpan...'
         : state.syncStatus === 'error'
-        ? '⚠️ Cek Tabel DB'
+        ? '⚠️ Cek Koneksi'
         : '☁️ Tersinkron';
 
       const hasPrev = prevStats.expense > 0;
@@ -1372,13 +1474,16 @@ create policy "User akses data sendiri"
 
       const expenseCatsWithBudget = state.categories.filter(c => c.type === 'expense' && c.budgetLimit > 0);
 
-      const cycleOptions = [-2, -1, 0, 1].map(off => {
+      // Lengkap 24 bulan (12 bulan ke belakang hingga 11 bulan ke depan)
+      const cycleOptionsList = [];
+      for (let off = -12; off <= 11; off++) {
         const c = getCycleRange(off);
-        return `<option value="${off}" ${off === state.cycleOffset ? 'selected' : ''}>${escapeHTML(c.label)}</option>`;
-      }).join('');
+        cycleOptionsList.push(`<option value="${off}" ${off === state.cycleOffset ? 'selected' : ''}>${escapeHTML(c.label)}</option>`);
+      }
+      const cycleOptions = cycleOptionsList.join('');
 
       return `
-        <!-- CURVED DEEP TEAL HERO HEADER -->
+        <!-- CURVED HERO HEADER -->
         <div class="bg-gradient-to-br from-[#127084] via-[#0E5A6A] to-[#0B4F5E] text-white pt-5 pb-16 px-4 rounded-b-[32px] shadow-md">
           <!-- Top Bar -->
           <div class="flex items-center justify-between gap-2 mb-4">
@@ -1387,13 +1492,13 @@ create policy "User akses data sendiri"
                 ${state.userAvatar ? `<img src="${escapeHTML(state.userAvatar)}" alt="Avatar" class="w-4 h-4 rounded-full object-cover shrink-0" />` : `<span class="w-2 h-2 rounded-full ${state.userMode === 'supabase' ? 'bg-emerald-400' : 'bg-amber-300'} shrink-0"></span>`}
                 <span class="truncate">${escapeHTML(profileBadgeText)}</span>
               </button>
-              <span id="headerSyncStatusPill" class="bg-black/20 px-2.5 py-1.5 rounded-full text-[10px] font-semibold text-teal-100 whitespace-nowrap">
+              <span id="headerSyncStatusPill" class="bg-black/20 px-2.5 py-1.5 rounded-full text-[10px] font-semibold text-white/90 whitespace-nowrap">
                 ${syncPillText}
               </span>
             </div>
 
             <div class="flex items-center gap-1.5 shrink-0">
-              <button onclick="openHelpModal()" aria-label="Bantuan" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
+              <button onclick="startFeatureTour(0)" aria-label="Panduan Fitur" title="Tur Fitur Aplikasi" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
                 <i data-lucide="help-circle" class="w-4 h-4"></i>
               </button>
               <button onclick="openNotificationsModal()" aria-label="Notifikasi" class="relative w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
@@ -1403,10 +1508,13 @@ create policy "User akses data sendiri"
             </div>
           </div>
 
-          <!-- Greeting & Cycle Range -->
+          <!-- Greeting, Today's Date & Cycle Range -->
           <div class="mb-3">
-            <div class="text-xs text-teal-100 font-medium">Yo, ${escapeHTML(state.userName)} 👋</div>
-            <div class="text-[11px] text-teal-200/90 mt-0.5">Siklus Gajian: <strong class="text-white">${escapeHTML(stats.cycle.rangeText)}</strong></div>
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs text-white/85 font-medium">Yo, ${escapeHTML(state.userName)} 👋</div>
+              <div class="text-[10px] font-bold bg-white/15 px-2.5 py-0.5 rounded-full text-white">${escapeHTML(formatTodayIndoHeader())}</div>
+            </div>
+            <div class="text-[11px] text-white/80 mt-1">Siklus Gajian: <strong class="text-white">${escapeHTML(stats.cycle.rangeText)}</strong></div>
           </div>
 
           <!-- Cycle Filter Pills -->
@@ -1424,9 +1532,9 @@ create policy "User akses data sendiri"
 
           <!-- Net Balance -->
           <div class="mb-4">
-            <div class="flex items-center gap-2 text-xs text-teal-100 font-medium">
+            <div class="flex items-center gap-2 text-xs text-white/85 font-medium">
               <span>Sisa cuan siklus ini</span>
-              <button onclick="toggleHideBalance()" aria-label="Sembunyikan Saldo" class="text-teal-100 hover:text-white">
+              <button onclick="toggleHideBalance()" aria-label="Sembunyikan Saldo" class="text-white/85 hover:text-white">
                 <i data-lucide="${state.hideBalance ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>
               </button>
             </div>
@@ -1438,7 +1546,7 @@ create policy "User akses data sendiri"
           <!-- Income & Expense Summary Cards -->
           <div class="grid grid-cols-2 gap-2.5">
             <div class="bg-white/12 backdrop-blur-xs rounded-2xl p-3 border border-white/10">
-              <div class="flex items-center gap-1.5 text-[11px] text-teal-100 font-medium">
+              <div class="flex items-center gap-1.5 text-[11px] text-white/85 font-medium">
                 <span class="w-5 h-5 rounded-full bg-emerald-400/20 text-emerald-300 flex items-center justify-center">
                   <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i>
                 </span>
@@ -1450,7 +1558,7 @@ create policy "User akses data sendiri"
             </div>
 
             <div class="bg-white/12 backdrop-blur-xs rounded-2xl p-3 border border-white/10">
-              <div class="flex items-center gap-1.5 text-[11px] text-teal-100 font-medium">
+              <div class="flex items-center gap-1.5 text-[11px] text-white/85 font-medium">
                 <span class="w-5 h-5 rounded-full bg-rose-400/20 text-rose-300 flex items-center justify-center">
                   <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
                 </span>
@@ -1600,7 +1708,7 @@ create policy "User akses data sendiri"
               <p class="text-xs text-slate-400 text-center py-4">Belum ada transaksi di siklus ini.</p>
             ` : `
               <div class="divide-y divide-slate-100">
-                ${recentTxs.map(tx => renderTransactionRow(tx, false)).join('')}
+                ${recentTxs.map(tx => renderTransactionRow(tx, true)).join('')}
               </div>
             `}
           </div>
@@ -1608,18 +1716,18 @@ create policy "User akses data sendiri"
       `;
     }
 
-    function renderTransactionRow(tx, allowDelete = true) {
+    function renderTransactionRow(tx, allowActions = true) {
       const cat = state.categories.find(c => c.id === tx.categoryId) || { icon: '💸', name: 'Lainnya' };
       const isIncome = tx.type === 'income';
       return `
-        <div class="py-2.5 flex items-center justify-between gap-2.5">
+        <div class="py-2.5 flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-10 h-10 rounded-2xl ${isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-[#E6F3F6] text-[#127084]'} flex items-center justify-center text-base shrink-0">
               ${escapeHTML(cat.icon)}
             </div>
             <div class="min-w-0">
               <div class="text-xs font-bold text-slate-900 truncate">${escapeHTML(tx.note || cat.name)}</div>
-              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
+              <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
                 <span>${escapeHTML(cat.name)}</span>
                 <span>•</span>
                 <span>${formatIndoDate(tx.date)}</span>
@@ -1628,12 +1736,15 @@ create policy "User akses data sendiri"
             </div>
           </div>
 
-          <div class="flex items-center gap-2 shrink-0">
-            <span class="text-xs font-extrabold ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-xs font-extrabold ${isIncome ? 'text-emerald-600' : 'text-slate-900'} mr-0.5">
               ${isIncome ? '+' : '-'}${formatIDR(tx.amount)}
             </span>
-            ${allowDelete ? `
-              <button type="button" onclick="deleteTransaction('${escapeHTML(tx.id)}')" aria-label="Hapus" class="w-7 h-7 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition">
+            ${allowActions ? `
+              <button type="button" onclick="openEditTransactionModal('${escapeHTML(tx.id)}')" aria-label="Edit Transaksi" title="Edit Transaksi" class="w-7 h-7 rounded-lg bg-slate-50 hover:bg-[#E6F3F6] text-slate-400 hover:text-[#127084] flex items-center justify-center transition">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" onclick="deleteTransaction('${escapeHTML(tx.id)}')" aria-label="Hapus Transaksi" title="Hapus Transaksi" class="w-7 h-7 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 flex items-center justify-center transition">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             ` : ''}
@@ -1643,7 +1754,7 @@ create policy "User akses data sendiri"
     }
 
     // =========================================================================
-    // 11. VIEW 2: TRANSAKSI (HISTORY, SEARCH & FILTER)
+    // 11. VIEW 2: TRANSAKSI (FULL CRUD, HISTORY, SEARCH & FILTER)
     // =========================================================================
     function setTxFilterType(type) {
       state.txFilterType = type;
@@ -1674,7 +1785,7 @@ create policy "User akses data sendiri"
           <div class="flex items-center justify-between mb-3">
             <div>
               <h1 class="text-base font-extrabold">Riwayat Transaksi</h1>
-              <p class="text-[11px] text-teal-100">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
+              <p class="text-[11px] text-white/80">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
             </div>
             <button onclick="openAddModal('manual')" class="px-3 py-1.5 rounded-full bg-white text-[#127084] text-xs font-extrabold shadow-2xs active:scale-95 transition">
               + Catat
@@ -1683,8 +1794,8 @@ create policy "User akses data sendiri"
 
           <!-- Search Input -->
           <div class="relative mb-3">
-            <input type="text" value="${escapeHTML(state.txSearchQuery)}" oninput="setTxSearchQuery(this.value)" placeholder="Cari catatan atau kategori..." class="w-full bg-white/15 placeholder-teal-100 text-white text-xs rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:bg-white/25" />
-            <i data-lucide="search" class="w-4 h-4 text-teal-100 absolute left-3 top-2.5"></i>
+            <input type="text" value="${escapeHTML(state.txSearchQuery)}" oninput="setTxSearchQuery(this.value)" placeholder="Cari catatan atau kategori..." class="w-full bg-white/15 placeholder-white/75 text-white text-xs rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:bg-white/25" />
+            <i data-lucide="search" class="w-4 h-4 text-white/80 absolute left-3 top-2.5"></i>
           </div>
 
           <!-- Filter Pills -->
@@ -1736,7 +1847,6 @@ create policy "User akses data sendiri"
         ? Math.floor(((stats.expense - prevStats.expense) / prevStats.expense) * 100)
         : 0;
 
-      // Pos Paling Boncos
       let topCat = null;
       let topCatSpent = 0;
       for (const [catId, amt] of Object.entries(stats.expenseByCategory)) {
@@ -1747,14 +1857,13 @@ create policy "User akses data sendiri"
       }
       const topCatPct = stats.expense > 0 ? Math.round((topCatSpent / stats.expense) * 100) : 0;
 
-      // Setara Kalo Beli Apa (otomatis berganti setiap bulan siklus)
-      const presetIdx = Math.abs(stats.cycle.startMonth) % MONTHLY_COMPARISON_PRESETS.length;
+      const presetIdx = Math.abs(stats.cycle.displayMonth) % MONTHLY_COMPARISON_PRESETS.length;
       const comparisonItems = MONTHLY_COMPARISON_PRESETS[presetIdx];
 
       return `
         <div class="bg-[#127084] text-white pt-6 pb-6 px-4 rounded-b-3xl shadow-sm">
           <h1 class="text-base font-extrabold">Laporan & Analisis Cuan</h1>
-          <p class="text-[11px] text-teal-100">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
+          <p class="text-[11px] text-white/80">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
         </div>
 
         <div class="px-4 mt-4 space-y-4">
@@ -1802,7 +1911,7 @@ create policy "User akses data sendiri"
           <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100">
             <div class="flex items-center justify-between mb-1">
               <h2 class="text-xs font-extrabold text-slate-900">Setara Kalo Beli Apa? 🤔</h2>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E6F3F6] text-[#127084]">Edisi ${escapeHTML(INDO_MONTHS[stats.cycle.startMonth])}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E6F3F6] text-[#127084]">Edisi ${escapeHTML(INDO_MONTHS[stats.cycle.displayMonth])}</span>
             </div>
             <p class="text-[11px] text-slate-500 mb-3">
               Total pengeluaranmu <strong>${formatIDR(stats.expense)}</strong> di siklus ini setara dengan:
@@ -1838,6 +1947,7 @@ create policy "User akses data sendiri"
         activeChartInstance = null;
       }
 
+      const activeTheme = getActiveTheme();
       const stats = getCycleStats(state.cycleOffset);
       const labels = [];
       const incomeSeries = [];
@@ -1898,7 +2008,7 @@ create policy "User akses data sendiri"
             {
               label: 'Cuan Keluar',
               data: expenseSeries,
-              backgroundColor: '#127084',
+              backgroundColor: activeTheme.primary,
               borderRadius: 6
             }
           ]
@@ -1931,40 +2041,74 @@ create policy "User akses data sendiri"
     }
 
     // =========================================================================
-    // 13. VIEW 4: LAINNYA (SETTINGS, CATEGORIES, REMINDER, BACKUP, SUPABASE)
+    // 13. VIEW 4: LAINNYA (CLEAN USER SETTINGS, ACCENT THEME, BACKUP, LOGOUT)
     // =========================================================================
     function renderLainnyaView() {
-      const sbCfg = getActiveSupabaseConfig();
+      const themeSwatches = Object.entries(ACCENT_THEMES).map(([key, item]) => {
+        const isSelected = state.accentTheme === key;
+        return `
+          <button type="button" onclick="applyAccentTheme('${key}', true)" class="flex flex-col items-center gap-1 p-2 rounded-2xl border transition ${isSelected ? 'border-slate-900 bg-slate-50 shadow-2xs' : 'border-slate-100 hover:bg-slate-50'}">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-extrabold shadow-2xs" style="background-color:${item.primary}">
+              ${isSelected ? '✓' : ''}
+            </span>
+            <span class="text-[10px] font-bold text-slate-700 leading-tight text-center">${escapeHTML(item.name.split(' ')[0])}</span>
+          </button>
+        `;
+      }).join('');
 
       return `
         <div class="bg-[#127084] text-white pt-6 pb-6 px-4 rounded-b-3xl shadow-sm">
           <h1 class="text-base font-extrabold">Pengaturan & Fitur Lainnya</h1>
-          <p class="text-[11px] text-teal-100">Atur siklus gajian, kategori, limit, & cloud sync</p>
+          <p class="text-[11px] text-white/80">Atur siklus gajian, kategori, warna tema, & backup</p>
         </div>
 
         <div class="px-4 mt-4 space-y-4">
           <!-- Account & Cloud Sync Card -->
-          <div class="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              ${state.userAvatar ? `
-                <img src="${escapeHTML(state.userAvatar)}" alt="Foto Profil" onerror="this.style.display='none'" class="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0" />
-              ` : `
-                <div class="w-11 h-11 rounded-full bg-[#127084] text-white font-extrabold text-sm flex items-center justify-center shrink-0">
-                  ${escapeHTML((state.userName || 'CU').slice(0, 2).toUpperCase())}
-                </div>
-              `}
-              <div class="min-w-0">
-                <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHTML(state.userName)}</div>
-                <div class="text-[11px] text-slate-500 truncate">
-                  ${state.userMode === 'supabase'
-                    ? `☁️ Tersinkron otomatis (${escapeHTML(state.userEmail)})`
-                    : '👀 Mode Preview • Login Google/Email untuk mulai mencatat'}
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-slate-100">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                ${state.userAvatar ? `
+                  <img src="${escapeHTML(state.userAvatar)}" alt="Foto Profil" onerror="this.style.display='none'" class="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0" />
+                ` : `
+                  <div class="w-11 h-11 rounded-full bg-[#127084] text-white font-extrabold text-sm flex items-center justify-center shrink-0">
+                    ${escapeHTML((state.userName || 'CU').slice(0, 2).toUpperCase())}
+                  </div>
+                `}
+                <div class="min-w-0">
+                  <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHTML(state.userName)}</div>
+                  <div class="text-[11px] text-slate-500 truncate">
+                    ${state.userMode === 'supabase'
+                      ? `☁️ Tersinkron otomatis (${escapeHTML(state.userEmail)})`
+                      : '👀 Mode Preview • Login untuk mulai mencatat'}
+                  </div>
                 </div>
               </div>
+              <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-full bg-[#E6F3F6] text-[#127084] text-xs font-bold hover:bg-[#127084] hover:text-white transition shrink-0">
+                ${state.userMode === 'supabase' ? 'Profil' : 'Masuk / Daftar'}
+              </button>
             </div>
-            <button onclick="openAccountModal()" class="px-3.5 py-2 rounded-full bg-[#E6F3F6] text-[#127084] text-xs font-bold hover:bg-[#127084] hover:text-white transition shrink-0">
-              ${state.userMode === 'supabase' ? 'Akun' : 'Masuk / Daftar'}
-            </button>
+            ${state.userMode === 'supabase' ? `
+              <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span class="text-[10px] text-emerald-700 font-bold">● Cloud Sync Aktif ${state.lastSyncedAt ? `(${state.lastSyncedAt})` : ''}</span>
+                <button type="button" onclick="signOutSupabase()" class="px-3 py-1.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 text-[11px] font-extrabold transition">
+                  Keluar Akun (Log Out)
+                </button>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Accent Theme Picker -->
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-slate-100">
+            <div class="flex items-center justify-between mb-2.5">
+              <div>
+                <h2 class="text-xs font-extrabold text-slate-900">Tema Warna Aplikasi 🎨</h2>
+                <p class="text-[10px] text-slate-400">Pilih warna aksen favoritmu</p>
+              </div>
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#E6F3F6] text-[#127084]">${escapeHTML(getActiveTheme().name)}</span>
+            </div>
+            <div class="grid grid-cols-6 gap-1.5">
+              ${themeSwatches}
+            </div>
           </div>
 
           <!-- Core Configuration List -->
@@ -2021,6 +2165,19 @@ create policy "User akses data sendiri"
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
+            <button onclick="startFeatureTour(0)" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-[#E6F3F6] text-[#127084] flex items-center justify-center shrink-0">
+                  <i data-lucide="compass" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-extrabold text-slate-900">Tur Panduan Fitur Cuan</div>
+                  <div class="text-[11px] text-slate-400">Lihat ulang penjelasan singkat cara pakai aplikasi</div>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+            </button>
+
             ${deferredPWAInstallPrompt ? `
               <button onclick="triggerPWAInstall()" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
                 <div class="flex items-center gap-3">
@@ -2037,7 +2194,7 @@ create policy "User akses data sendiri"
             ` : ''}
           </div>
 
-          <!-- Backup, Export & Sample Data -->
+          <!-- Backup & Export -->
           <div class="bg-white rounded-2xl shadow-xs border border-slate-100 divide-y divide-slate-100 overflow-hidden">
             <button onclick="exportJSONBackup()" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
               <div class="flex items-center gap-3">
@@ -2078,70 +2235,13 @@ create policy "User akses data sendiri"
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
-
-            <button onclick="populateSampleData()" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
-              <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-[#E6F3F6] text-[#127084] flex items-center justify-center shrink-0">
-                  <i data-lucide="sparkles" class="w-5 h-5"></i>
-                </div>
-                <div>
-                  <div class="text-xs font-extrabold text-slate-900">${state.userMode === 'supabase' ? 'Isi Data Contoh ke Akun' : 'Reset Data Contoh Preview'}</div>
-                  <div class="text-[11px] text-slate-400">Muat transaksi siklus ini & siklus lalu + struk digital</div>
-                </div>
-              </div>
-              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-            </button>
           </div>
-
-          <!-- COLLAPSIBLE OWNER SETUP ACCORDION -->
-          <details id="ownerSupabaseSetupAccordion" class="bg-white rounded-2xl shadow-xs border border-slate-100 overflow-hidden">
-            <summary class="p-4 flex items-center justify-between cursor-pointer list-none hover:bg-slate-50 transition">
-              <div class="flex items-center gap-2.5">
-                <span class="text-sm">⚙️</span>
-                <div>
-                  <div class="text-xs font-extrabold text-slate-900">Setup Database Supabase (Untuk Owner App)</div>
-                  <div class="text-[10px] text-slate-400">
-                    ${sbCfg.isConfigured ? '✅ Kredensial Supabase aktif' : 'Atur Project URL, Anon Key & SQL tabel cuan_user_data'}
-                  </div>
-                </div>
-              </div>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400"></i>
-            </summary>
-
-            <div class="px-4 pb-4 pt-2 border-t border-slate-100 space-y-3">
-              <p class="text-[11px] text-slate-500 leading-relaxed">
-                Tempel kredensial proyek Supabase milikmu di bawah ini (atau isi langsung di variabel <code class="bg-slate-100 px-1 rounded">SUPABASE_CONFIG</code> di dalam kode aplikasi):
-              </p>
-
-              <form onsubmit="saveOwnerSupabaseConfig(event)" class="space-y-2">
-                <div>
-                  <label class="block text-[10px] font-bold text-slate-600 mb-1">Supabase Project URL</label>
-                  <input id="ownerSbUrlInput" type="url" value="${escapeHTML(sbCfg.url)}" placeholder="https://xxxx.supabase.co" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#127084]" />
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-slate-600 mb-1">Supabase Anon Public Key</label>
-                  <input id="ownerSbKeyInput" type="text" value="${escapeHTML(sbCfg.anonKey)}" placeholder="eyJhbGciOiJIUzI1NiIsInR5c..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#127084]" />
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-full bg-[#127084] text-white text-xs font-extrabold">
-                  Simpan Kredensial Supabase
-                </button>
-              </form>
-
-              <div class="pt-2 border-t border-slate-100">
-                <div class="flex items-center justify-between mb-1.5">
-                  <span class="text-[10px] font-bold text-slate-700">Script SQL Tabel Cloud Sync:</span>
-                  <button type="button" onclick="copySqlSetup()" class="px-2.5 py-1 rounded-lg bg-[#E6F3F6] text-[#127084] text-[10px] font-extrabold">Salin SQL</button>
-                </div>
-                <pre class="bg-slate-900 text-teal-200 text-[10px] p-3 rounded-xl overflow-x-auto leading-relaxed">${escapeHTML(SUPABASE_SQL_SETUP)}</pre>
-              </div>
-            </div>
-          </details>
         </div>
       `;
     }
 
     // =========================================================================
-    // 14. ADD TRANSACTION MODAL (MANUAL, AI TEXT, SCAN RECEIPT)
+    // 14. TRANSACTION CRUD MODALS (CREATE, EDIT, AI TEXT, SCAN RECEIPT)
     // =========================================================================
     function openAddModal(initialTab = 'manual', prefill = {}) {
       const actionLabels = {
@@ -2157,6 +2257,10 @@ create policy "User akses data sendiri"
     }
 
     function switchAddModalTab(tab) {
+      if (tab === 'voice') {
+        openVoiceModal();
+        return;
+      }
       window._activeAddTab = tab;
       renderAddModalBody(tab, {});
     }
@@ -2256,14 +2360,116 @@ create policy "User akses data sendiri"
           <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
         </div>
 
-        <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-2xl mb-4">
-          <button type="button" onclick="switchAddModalTab('manual')" class="py-2 rounded-xl text-[11px] font-extrabold transition ${tab === 'manual' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">Manual</button>
-          <button type="button" onclick="switchAddModalTab('ai')" class="py-2 rounded-xl text-[11px] font-extrabold transition ${tab === 'ai' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">✨ Catat AI</button>
-          <button type="button" onclick="switchAddModalTab('scan')" class="py-2 rounded-xl text-[11px] font-extrabold transition ${tab === 'scan' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">📸 Scan Struk</button>
+        <div class="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-2xl mb-4">
+          <button type="button" onclick="switchAddModalTab('manual')" class="py-2 rounded-xl text-[10px] font-extrabold transition ${tab === 'manual' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">Manual</button>
+          <button type="button" onclick="switchAddModalTab('voice')" class="py-2 rounded-xl text-[10px] font-extrabold transition text-slate-500 hover:text-[#127084]">🎙️ Suara</button>
+          <button type="button" onclick="switchAddModalTab('ai')" class="py-2 rounded-xl text-[10px] font-extrabold transition ${tab === 'ai' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">✨ AI</button>
+          <button type="button" onclick="switchAddModalTab('scan')" class="py-2 rounded-xl text-[10px] font-extrabold transition ${tab === 'scan' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">📸 Struk</button>
         </div>
 
         ${contentHtml}
       `);
+    }
+
+    function openEditTransactionModal(txId) {
+      if (!requireAuthForRecording('edit transaksi')) return;
+      const tx = state.transactions.find(t => t.id === txId);
+      if (!tx) return;
+
+      const formattedAmt = Number(tx.amount || 0).toLocaleString('id-ID');
+      const categoryOpts = state.categories.map(c =>
+        `<option value="${escapeHTML(c.id)}" ${c.id === tx.categoryId ? 'selected' : ''}>${escapeHTML(c.icon)} ${escapeHTML(c.name)} (${c.type === 'income' ? 'Masuk' : 'Keluar'})</option>`
+      ).join('');
+
+      showModal(`
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Edit Transaksi</h3>
+            <p class="text-[10px] text-slate-400">Perbarui nominal, kategori, tanggal, atau catatan</p>
+          </div>
+          <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
+        </div>
+
+        <form onsubmit="handleEditTxSubmit(event, '${escapeHTML(tx.id)}')" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl">
+            <label class="cursor-pointer">
+              <input type="radio" name="editTxType" value="expense" ${tx.type === 'expense' ? 'checked' : ''} class="peer hidden" />
+              <div class="text-center py-2 rounded-xl text-xs font-extrabold text-slate-500 peer-checked:bg-[#127084] peer-checked:text-white transition">Cuan Keluar</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="editTxType" value="income" ${tx.type === 'income' ? 'checked' : ''} class="peer hidden" />
+              <div class="text-center py-2 rounded-xl text-xs font-extrabold text-slate-500 peer-checked:bg-emerald-600 peer-checked:text-white transition">Cuan Masuk</div>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nominal (Rp)</label>
+            <input id="editAmountInput" type="text" inputmode="numeric" required value="${escapeHTML(formattedAmt)}" oninput="formatRupiahInput(this)" class="w-full border border-slate-200 rounded-2xl px-3.5 py-3 text-lg font-extrabold text-slate-900 focus:outline-none focus:border-[#127084]" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Kategori</label>
+              <select id="editCategoryInput" class="w-full border border-slate-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:border-[#127084]">
+                ${categoryOpts}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Tanggal</label>
+              <input id="editDateInput" type="date" required value="${escapeHTML(tx.date)}" class="w-full border border-slate-200 rounded-2xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#127084]" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Catatan</label>
+            <input id="editNoteInput" type="text" value="${escapeHTML(tx.note || '')}" class="w-full border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#127084]" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button type="button" onclick="deleteTransaction('${escapeHTML(tx.id)}'); closeModal();" class="py-3 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs transition">
+              Hapus
+            </button>
+            <button type="submit" class="py-3 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-xs shadow-md transition">
+              Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      `);
+    }
+
+    function handleEditTxSubmit(e, txId) {
+      e.preventDefault();
+      if (!requireAuthForRecording('simpan perubahan transaksi')) return;
+
+      const idx = state.transactions.findIndex(t => t.id === txId);
+      if (idx === -1) return;
+
+      const typeEl = document.querySelector('input[name="editTxType"]:checked');
+      const type = typeEl ? typeEl.value : state.transactions[idx].type;
+      const amount = parseFormattedNumber(document.getElementById('editAmountInput').value);
+      const categoryId = document.getElementById('editCategoryInput').value;
+      const date = document.getElementById('editDateInput').value || state.transactions[idx].date;
+      const note = document.getElementById('editNoteInput').value.trim();
+
+      if (amount <= 0) {
+        showToast('Nominal Kosong', 'Masukkan nominal lebih dari Rp 0 ya!', 'amber');
+        return;
+      }
+
+      state.transactions[idx] = {
+        ...state.transactions[idx],
+        type,
+        amount,
+        categoryId,
+        date,
+        note: note || (state.categories.find(c => c.id === categoryId)?.name || 'Transaksi')
+      };
+
+      saveStateToStorage();
+      closeModal();
+      showToast('Transaksi Diperbarui ✏️', 'Perubahan catatan berhasil disimpan & disinkronkan.', 'mint');
+      if (type === 'expense') checkCategoryBudgetAlert(categoryId);
+      render();
     }
 
     function handleManualTxSubmit(e) {
@@ -2401,17 +2607,18 @@ create policy "User akses data sendiri"
       if (!requireAuthForRecording('menghapus transaksi')) return;
       state.transactions = state.transactions.filter(t => t.id !== txId);
       saveStateToStorage();
+      showToast('Transaksi Dihapus 🗑️', 'Catatan berhasil dihapus dari daftar.', 'teal');
       render();
     }
 
     // =========================================================================
-    // 15. FEATURE MODALS (PAYDAY, BUDGET LIMIT, CATEGORIES, REMINDER, AUTH)
+    // 15. FEATURE MODALS (PAYDAY, BUDGET LIMIT, CATEGORIES, REMINDER, AUTH, TOUR)
     // =========================================================================
     function openPaydayModal() {
       if (!requireAuthForRecording('atur tanggal gajian')) return;
       const now = new Date();
       const rows = [];
-      for (let i = -1; i <= 3; i++) {
+      for (let i = -2; i <= 9; i++) {
         const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
         const mk = getMonthKey(d.getFullYear(), d.getMonth());
         const currentVal = state.monthlyPaydays[mk] || '';
@@ -2438,7 +2645,7 @@ create policy "User akses data sendiri"
             <input id="defaultPaydayInput" type="number" min="1" max="31" required value="${state.defaultPayday}" class="w-20 bg-white border border-[#127084]/30 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-center text-[#127084]" />
           </div>
 
-          <div class="max-h-52 overflow-y-auto pr-1">
+          <div class="max-h-56 overflow-y-auto pr-1">
             ${rows.join('')}
           </div>
 
@@ -2626,20 +2833,28 @@ create policy "User akses data sendiri"
     }
 
     function openNotificationsModal() {
+      const visibleNotifs = state.userMode === 'supabase'
+        ? state.notifications.filter(n => n.id !== 'notif_welcome')
+        : state.notifications;
+
       showModal(`
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-base font-extrabold text-slate-900">Pusat Notifikasi</h3>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="markAllNotificationsRead()" class="text-[11px] font-bold text-[#127084]">Tandai Dibaca</button>
+            ${visibleNotifs.length > 0 ? `<button type="button" onclick="markAllNotificationsRead()" class="text-[11px] font-bold text-[#127084]">Tandai Dibaca</button>` : ''}
             <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
           </div>
         </div>
         <div class="space-y-2 max-h-80 overflow-y-auto">
-          ${state.notifications.map(n => `
+          ${visibleNotifs.length === 0 ? `
+            <div class="text-center py-8 text-xs text-slate-400">
+              Belum ada notifikasi baru. Peringatan limit pos & pengingat harian akan muncul di sini.
+            </div>
+          ` : visibleNotifs.map(n => `
             <div class="p-3 rounded-2xl border ${n.unread ? 'bg-[#E6F3F6]/60 border-[#127084]/25' : 'bg-slate-50 border-slate-100'}">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-extrabold text-slate-900">${escapeHTML(n.title)}</span>
-                <span class="text-[10px] text-slate-400">${escapeHTML(n.time)}</span>
+                <span class="text-[10px] text-slate-400 shrink-0">${escapeHTML(n.time)}</span>
               </div>
               <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${escapeHTML(n.body)}</p>
             </div>
@@ -2655,33 +2870,98 @@ create policy "User akses data sendiri"
       render();
     }
 
-    function openHelpModal() {
+    // =========================================================================
+    // 15B. INTERACTIVE ONBOARDING FEATURE TOUR
+    // =========================================================================
+    const TOUR_STEPS = [
+      {
+        emoji: '👋',
+        badge: 'Langkah 1 dari 5',
+        title: 'Selamat Datang di Cuan!',
+        desc: 'Aplikasi pencatat keuangan yang menghitung arus kas sesuai tanggal gajianmu—bukan tanggal 1–30 yang kaku.'
+      },
+      {
+        emoji: '📅',
+        badge: 'Langkah 2 dari 5',
+        title: 'Siklus Gajian & Limit Pos',
+        desc: 'Kamu bisa atur tanggal gajian berbeda tiap bulan dan pasang batas maksimal pengeluaran tiap kategori biar nggak boncos.'
+      },
+      {
+        emoji: '🎙️',
+        badge: 'Langkah 3 dari 5',
+        title: 'Tahan Tombol (+) untuk Suara!',
+        desc: 'Tap tombol (+) di tengah untuk catat manual/AI/struk, atau tahan tombol (+) selama 0,5 detik untuk langsung ngomong!'
+      },
+      {
+        emoji: '📊',
+        badge: 'Langkah 4 dari 5',
+        title: 'Vibe Check & Laporan Lengkap',
+        desc: 'Lihat grafik masuk vs keluar, cek seberapa hemat kamu dibanding siklus lalu, dan edit transaksi kapan saja di menu Transaksi.'
+      },
+      {
+        emoji: '☁️',
+        badge: 'Langkah 5 dari 5',
+        title: 'Login Sekali, Tersimpan Selamanya',
+        desc: 'Masuk pake Google atau Email agar seluruh catatan cuanmu otomatis tersinkron ke cloud dan aman meski ganti HP.'
+      }
+    ];
+
+    function startFeatureTour(stepIndex = 0) {
+      const idx = Math.max(0, Math.min(TOUR_STEPS.length - 1, stepIndex));
+      const step = TOUR_STEPS[idx];
+      const isLast = idx === TOUR_STEPS.length - 1;
+
+      const dotsHtml = TOUR_STEPS.map((_, i) =>
+        `<span class="h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-[#127084]' : 'w-1.5 bg-slate-200'}"></span>`
+      ).join('');
+
       showModal(`
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-base font-extrabold text-slate-900">Panduan Singkat Cuan 💡</h3>
-          <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
+          <span class="px-2.5 py-1 rounded-full bg-[#E6F3F6] text-[#127084] text-[10px] font-extrabold">${escapeHTML(step.badge)}</span>
+          <button type="button" onclick="finishFeatureTour()" class="text-[11px] font-bold text-slate-400 hover:text-slate-600">Lewati</button>
         </div>
-        <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-          <div class="p-3 rounded-2xl bg-[#F4F7F8]">
-            <strong class="text-slate-900">1. Siklus Gajian Dinamis:</strong> Atur tanggal gajian berbeda tiap bulan lewat tombol <em>Atur Gajian</em>.
+
+        <div class="text-center py-4 px-2">
+          <div class="w-16 h-16 rounded-3xl bg-[#E6F3F6] text-3xl flex items-center justify-center mx-auto mb-3 shadow-2xs">
+            ${step.emoji}
           </div>
-          <div class="p-3 rounded-2xl bg-[#F4F7F8]">
-            <strong class="text-slate-900">2. Catat Suara & AI:</strong> Tap <em>🎙️ Suara</em> atau <em>✨ Catat AI</em> untuk mencatat banyak item sekaligus dalam satu kalimat.
-          </div>
-          <div class="p-3 rounded-2xl bg-[#F4F7F8]">
-            <strong class="text-slate-900">3. Cloud Sync Otomatis:</strong> Login pake Google atau Email agar seluruh catatan tersimpan aman di cloud dan tidak hilang.
-          </div>
+          <h3 class="text-base font-extrabold text-slate-900 mb-1.5">${escapeHTML(step.title)}</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">${escapeHTML(step.desc)}</p>
+        </div>
+
+        <div class="flex items-center justify-center gap-1.5 my-3">
+          ${dotsHtml}
+        </div>
+
+        <div class="flex items-center gap-2 mt-4">
+          ${idx > 0 ? `
+            <button type="button" onclick="startFeatureTour(${idx - 1})" class="flex-1 py-3 rounded-full bg-slate-100 text-slate-700 font-extrabold text-xs">
+              Sebelumnya
+            </button>
+          ` : ''}
+          <button type="button" onclick="${isLast ? 'finishFeatureTour()' : `startFeatureTour(${idx + 1})`}" class="flex-1 py-3 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-xs shadow-md transition">
+            ${isLast ? 'Mulai Pakai Cuan 🚀' : 'Lanjut'}
+          </button>
         </div>
       `);
     }
 
+    function finishFeatureTour() {
+      try {
+        localStorage.setItem(TOUR_COMPLETED_KEY, '1');
+      } catch (e) {}
+      closeModal();
+    }
+
+    // =========================================================================
+    // 15C. ACCOUNT, LOGIN, FORGOT PASSWORD & LOGOUT MODAL
+    // =========================================================================
     function switchAuthModalTab(tab) {
       state.authModalTab = tab;
       openAccountModal();
     }
 
     function openAccountModal(promptContext = '') {
-      const cfg = getActiveSupabaseConfig();
       const activeAuthTab = state.authModalTab || 'signin';
 
       showModal(`
@@ -2694,9 +2974,13 @@ create policy "User akses data sendiri"
 
         ${state.userMode === 'supabase' ? `
           <div class="p-4 rounded-2xl bg-[#E6F3F6] mb-3 flex items-center gap-3">
-            <div class="w-11 h-11 rounded-full bg-[#127084] text-white font-extrabold flex items-center justify-center shrink-0">
-              ${escapeHTML((state.userName || 'CU').slice(0, 2).toUpperCase())}
-            </div>
+            ${state.userAvatar ? `
+              <img src="${escapeHTML(state.userAvatar)}" alt="Profil" class="w-11 h-11 rounded-full object-cover border border-white shrink-0" />
+            ` : `
+              <div class="w-11 h-11 rounded-full bg-[#127084] text-white font-extrabold flex items-center justify-center shrink-0">
+                ${escapeHTML((state.userName || 'CU').slice(0, 2).toUpperCase())}
+              </div>
+            `}
             <div class="min-w-0">
               <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHTML(state.userName)}</div>
               <div class="text-[11px] text-[#0E5A6A] truncate">${escapeHTML(state.userEmail)}</div>
@@ -2709,9 +2993,25 @@ create policy "User akses data sendiri"
             <button type="button" onclick="loadUserData(false, false).then(() => render())" class="py-2.5 rounded-full bg-[#E6F3F6] text-[#127084] text-xs font-extrabold">Muat dari Cloud</button>
           </div>
 
-          <button type="button" onclick="signOutSupabase()" class="w-full py-2.5 rounded-full border border-red-200 text-[#EF4444] font-bold text-xs hover:bg-red-50 transition">
-            Keluar Akun (Sign Out)
+          <button type="button" onclick="signOutSupabase()" class="w-full py-2.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-extrabold text-xs transition">
+            Keluar Akun (Log Out)
           </button>
+        ` : activeAuthTab === 'forgot' ? `
+          <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+            Masukkan email yang terdaftar di akun Cuan kamu. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
+          </p>
+          <form onsubmit="handleForgotPasswordSubmit(event)" class="space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Email Akun</label>
+              <input id="forgotEmailInput" type="email" required placeholder="kamu@email.com" class="w-full border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#127084]" />
+            </div>
+            <button type="submit" class="w-full py-3 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-xs shadow-md transition">
+              Kirim Link Reset Sandi
+            </button>
+            <button type="button" onclick="switchAuthModalTab('signin')" class="w-full py-2 text-xs font-bold text-[#127084] hover:underline">
+              ← Kembali ke Halaman Masuk
+            </button>
+          </form>
         ` : `
           ${promptContext ? `
             <div class="p-3 rounded-2xl bg-[#E6F3F6] border border-[#127084]/25 text-xs text-[#0B4F5E] mb-3.5 flex items-start gap-2.5">
@@ -2726,12 +3026,6 @@ create policy "User akses data sendiri"
               Login pake <strong>Google</strong> atau <strong>Email</strong> supaya semua catatan cuanmu otomatis tersimpan & bisa dibuka dari HP mana aja.
             </p>
           `}
-
-          ${!cfg.isConfigured ? `
-            <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 mb-3">
-              ⚠️ Kredensial Supabase belum diisi. Buka tab <strong>Lainnya → Setup Database Supabase</strong> untuk menempel Project URL & Anon Key.
-            </div>
-          ` : ''}
 
           <!-- 1-Click Google OAuth Button -->
           <button type="button" onclick="handleGoogleLoginClick()" class="w-full py-3 rounded-full bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center justify-center gap-2.5 text-xs font-extrabold text-slate-800 active:scale-95 transition mb-3">
@@ -2767,7 +3061,12 @@ create policy "User akses data sendiri"
               <input id="authEmailInput" type="email" required placeholder="kamu@email.com" class="w-full border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#127084]" />
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Password</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] font-bold text-slate-600">Password</label>
+                ${activeAuthTab === 'signin' ? `
+                  <button type="button" onclick="switchAuthModalTab('forgot')" class="text-[10px] font-bold text-[#127084] hover:underline">Lupa sandi?</button>
+                ` : ''}
+              </div>
               <input id="authPasswordInput" type="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#127084]" />
             </div>
             <button type="submit" class="w-full py-3 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-xs shadow-md active:scale-95 transition">
@@ -2908,17 +3207,58 @@ create policy "User akses data sendiri"
       if (shouldPersist) saveStateToStorage(false);
     }
 
-    function populateSampleData() {
-      state.transactions = buildDummyTransactions();
-      state.isDemoData = state.userMode !== 'supabase';
-      state.cycleOffset = 0;
-      saveStateToStorage();
-      showToast('Data Contoh Dimuat! ✨', 'Cek grafik laporan, vibe check, & bukti struk digital.', 'mint');
-      render();
+    // =========================================================================
+    // 17. CENTER PLUS BUTTON GESTURE (TAP = ADD, LONG-PRESS = VOICE MIC)
+    // =========================================================================
+    function bindCenterPlusGestures() {
+      const btn = document.getElementById('centerPlusBtn');
+      if (!btn) return;
+
+      let pressTimer = null;
+      let longPressTriggered = false;
+
+      const startPress = () => {
+        longPressTriggered = false;
+        btn.classList.add('scale-90');
+        pressTimer = setTimeout(() => {
+          longPressTriggered = true;
+          btn.classList.remove('scale-90');
+          if (navigator.vibrate) {
+            try { navigator.vibrate(40); } catch (e) {}
+          }
+          openVoiceModal();
+        }, 450);
+      };
+
+      const cancelPress = () => {
+        btn.classList.remove('scale-90');
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      const endPress = (e) => {
+        btn.classList.remove('scale-90');
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+        if (!longPressTriggered) {
+          e.preventDefault();
+          openAddModal('manual');
+        }
+      };
+
+      btn.addEventListener('pointerdown', startPress);
+      btn.addEventListener('pointerup', endPress);
+      btn.addEventListener('pointerleave', cancelPress);
+      btn.addEventListener('pointercancel', cancelPress);
+      btn.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
     // =========================================================================
-    // 17. BOOTSTRAP & SERVICE WORKER REGISTRATION
+    // 18. BOOTSTRAP & SERVICE WORKER REGISTRATION
     // =========================================================================
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -2931,18 +3271,26 @@ create policy "User akses data sendiri"
       window.__cuanAppInitialized = true;
 
       loadStateFromStorage();
-      applyUrlAutoConfigParams();
+      applyAccentTheme(state.accentTheme, false);
+      syncDeveloperAnnouncements();
 
       if (state.userMode !== 'supabase' && state.transactions.length === 0) {
         seedDummyPreviewData(true);
       }
 
+      bindCenterPlusGestures();
       setupDailyReminderScheduler();
       render();
       initSupabaseAuthListener();
 
+      try {
+        if (!localStorage.getItem(TOUR_COMPLETED_KEY)) {
+          setTimeout(() => startFeatureTour(0), 500);
+        }
+      } catch (e) {}
+
       if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       }
     }
 
