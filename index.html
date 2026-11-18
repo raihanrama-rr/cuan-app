@@ -12,9 +12,9 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Inline SVG Data-URI Icons -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23127084'/%3E%3Cstop offset='100%25' stop-color='%230B4F5E'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='116' fill='url(%23g)'/%3E%3Ccircle cx='405' cy='115' r='34' fill='%2310B981' opacity='0.9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-weight='800' font-size='154' fill='%23FFFFFF'%3ECuan%3C/text%3E%3C/svg%3E" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23127084'/%3E%3Cstop offset='100%25' stop-color='%230B4F5E'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='116' fill='url(%23g)'/%3E%3Ccircle cx='405' cy='115' r='34' fill='%2310B981' opacity='0.9'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-weight='800' font-size='154' fill='%23FFFFFF'%3ECuan%3C/text%3E%3C/svg%3E" />
+  <!-- Minimalist Fintech Logo (SVG Data-URI) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23127084'/%3E%3Cstop offset='100%25' stop-color='%23083D49'/%3E%3C/linearGradient%3E%3ClinearGradient id='mint' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2310B981'/%3E%3Cstop offset='100%25' stop-color='%236EE7B7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='120' fill='url(%23bg)'/%3E%3Ccircle cx='256' cy='256' r='168' fill='none' stroke='%23FFFFFF' stroke-opacity='0.1' stroke-width='20'/%3E%3Cpath d='M334 176 A112 112 0 1 0 334 336' fill='none' stroke='%23FFFFFF' stroke-width='44' stroke-linecap='round'/%3E%3Cpath d='M256 276 L310 222 L346 244 L394 184' fill='none' stroke='url(%23mint)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='394' cy='184' r='16' fill='%236EE7B7'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23127084'/%3E%3Cstop offset='100%25' stop-color='%23083D49'/%3E%3C/linearGradient%3E%3ClinearGradient id='mint' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2310B981'/%3E%3Cstop offset='100%25' stop-color='%236EE7B7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='120' fill='url(%23bg)'/%3E%3Ccircle cx='256' cy='256' r='168' fill='none' stroke='%23FFFFFF' stroke-opacity='0.1' stroke-width='20'/%3E%3Cpath d='M334 176 A112 112 0 1 0 334 336' fill='none' stroke='%23FFFFFF' stroke-width='44' stroke-linecap='round'/%3E%3Cpath d='M256 276 L310 222 L346 244 L394 184' fill='none' stroke='url(%23mint)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='394' cy='184' r='16' fill='%236EE7B7'/%3E%3C/svg%3E" />
 
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -94,12 +94,34 @@
       animation: eqBarBounce 0.75s ease-in-out infinite;
       transform-origin: center;
     }
+    @keyframes spotlightPulse {
+      0%, 100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.74), 0 0 0 3px rgba(52, 211, 153, 0.95); }
+      50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.74), 0 0 0 7px rgba(52, 211, 153, 0.45); }
+    }
+    .tour-spotlight-ring {
+      animation: spotlightPulse 1.8s ease-in-out infinite;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-900 antialiased">
 
   <!-- Toast Notification Stack -->
-  <div id="toastStack" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm flex flex-col gap-2 pointer-events-none"></div>
+  <div id="toastStack" class="fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[92%] max-w-sm flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Update Available Floating Banner -->
+  <div id="appUpdateBanner" class="hidden fixed top-3 left-1/2 -translate-x-1/2 z-[65] w-[92%] max-w-sm bg-slate-900 text-white rounded-2xl p-3 shadow-2xl border border-emerald-400/40 flex items-center justify-between gap-2.5">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 text-sm">🚀</span>
+      <div class="min-w-0">
+        <div class="text-xs font-extrabold truncate">Versi Baru Cuan Tersedia!</div>
+        <div class="text-[10px] text-slate-300 truncate">Muat ulang untuk menikmati fitur terbaru</div>
+      </div>
+    </div>
+    <button type="button" onclick="applyAppUpdate()" class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-[11px] shrink-0 active:scale-95 transition">
+      Update
+    </button>
+  </div>
 
   <!-- Mobile App Container -->
   <div id="appContainer" class="max-w-md mx-auto min-h-screen bg-[#F4F7F8] pb-28 relative shadow-2xl overflow-x-hidden">
@@ -137,25 +159,28 @@
     </nav>
   </div>
 
+  <!-- Spotlight Guided Tour Overlay -->
+  <div id="tourOverlay" class="hidden fixed inset-0 z-[60] pointer-events-auto"></div>
+
   <!-- Modal Backdrop & Container -->
   <div id="modalBackdrop" class="hidden fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-0 sm:p-4"></div>
 
   <script>
     // =========================================================================
-    // 0. KONFIGURASI SUPABASE & PENGUMUMAN DEVELOPER
+    // 0. KONFIGURASI VERSI, SUPABASE & PENGUMUMAN DEVELOPER
     // =========================================================================
+    const APP_VERSION = '2.2.0';
+
     const SUPABASE_CONFIG = {
       url: 'https://nbzlnyrtpnfsiaeqdcrz.supabase.co',
       anonKey: 'sb_publishable_-4i05ZsjNBvlLE02KDoPxQ_5cMdtpRE'
     };
 
-    // Tambahkan objek pengumuman baru di sini (ubah id-nya setiap rilis info baru)
-    // Otomatis muncul di ikon lonceng notifikasi semua user!
     const DEVELOPER_ANNOUNCEMENTS = [
       {
-        id: 'dev_info_v2_1',
-        title: 'Fitur Baru: Edit Transaksi & Tema Warna! 🎨',
-        body: 'Sekarang kamu bisa edit transaksi yang sudah dicatat, tahan tombol (+) untuk rekam suara, dan ganti warna tema di menu Lainnya.',
+        id: 'dev_info_v2_2',
+        title: 'Update Cuan v2.2.0 ✨',
+        body: 'Siklus gajian kini otomatis mengikuti data transaksimu, default tanggal gajian tgl 30, tur interaktif dengan sorotan fitur, serta cara mudah install aplikasi di HP!',
         time: 'Info Developer',
         level: 'info'
       }
@@ -206,8 +231,9 @@
       }
     };
 
-    const STORAGE_KEY = 'cuan_pwa_auth_prod_v3';
-    const TOUR_COMPLETED_KEY = 'cuan_onboarding_tour_done_v1';
+    const STORAGE_KEY = 'cuan_pwa_auth_prod_v4';
+    const TOUR_COMPLETED_KEY = 'cuan_spotlight_tour_done_v2';
+    const INSTALL_BANNER_DISMISSED_KEY = 'cuan_install_banner_dismissed_v1';
 
     const INDO_MONTHS = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -266,7 +292,7 @@
       lastSyncedAt: '',
       syncStatus: 'simulation', // 'simulation' | 'synced' | 'saving' | 'error'
       authModalTab: 'signin', // 'signin' | 'signup' | 'forgot'
-      defaultPayday: 25,
+      defaultPayday: 30,
       monthlyPaydays: {},
       categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
       transactions: [],
@@ -293,6 +319,8 @@
     let activeChartInstance = null;
     let autoCloudSyncTimer = null;
     let deferredPWAInstallPrompt = null;
+    let waitingServiceWorker = null;
+    let activeTourStepIndex = null;
 
     const voiceRuntime = {
       recognition: null,
@@ -304,8 +332,31 @@
     };
 
     // =========================================================================
-    // 2. THEME ENGINE & CORE UTILITIES
+    // 2. THEME ENGINE, BRAND LOGO SVG & CORE UTILITIES
     // =========================================================================
+    function getCuanBrandLogoSVG(sizeClass = 'w-10 h-10') {
+      const t = getActiveTheme();
+      return `
+        <svg class="${sizeClass} shrink-0" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cuanLogoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${t.primary}" />
+              <stop offset="100%" stop-color="${t.darker}" />
+            </linearGradient>
+            <linearGradient id="cuanGrowthGrad" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%" stop-color="#10B981" />
+              <stop offset="100%" stop-color="#6EE7B7" />
+            </linearGradient>
+          </defs>
+          <rect width="512" height="512" rx="124" fill="url(#cuanLogoGrad)" />
+          <circle cx="256" cy="256" r="168" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="20" />
+          <path d="M334 176 A112 112 0 1 0 334 336" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" />
+          <path d="M256 276 L310 222 L346 244 L394 184" stroke="url(#cuanGrowthGrad)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="394" cy="184" r="16" fill="#6EE7B7" />
+        </svg>
+      `;
+    }
+
     function getActiveTheme() {
       return ACCENT_THEMES[state.accentTheme] || ACCENT_THEMES.teal;
     }
@@ -430,6 +481,25 @@
       return `${INDO_DAYS[now.getDay()]}, ${now.getDate()} ${INDO_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
     }
 
+    function isAppInstalledStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function isInstallBannerDismissed() {
+      try {
+        return localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === '1';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function dismissInstallBanner() {
+      try {
+        localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, '1');
+      } catch (e) {}
+      render();
+    }
+
     function saveStateToStorage(triggerCloud = true) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -450,6 +520,7 @@
           state = {
             ...state,
             ...parsed,
+            defaultPayday: typeof parsed.defaultPayday === 'number' ? parsed.defaultPayday : 30,
             categories: Array.isArray(parsed.categories) && parsed.categories.length
               ? parsed.categories
               : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
@@ -597,8 +668,8 @@
       state.userName = resolvedName;
       state.userAvatar = resolvedAvatar;
       state.syncStatus = 'saving';
+      state.cycleOffset = 0;
 
-      // Hapus notifikasi preview data contoh begitu user login
       state.notifications = state.notifications.filter(n => n.id !== 'notif_welcome');
 
       if (isDifferentUser || wasDemoMode) {
@@ -847,7 +918,7 @@
     }
 
     // =========================================================================
-    // 4. PAYDAY CYCLE ENGINE (DYNAMIC PER MONTH)
+    // 4. PAYDAY CYCLE ENGINE (DEFAULT TGL 30 + DATABASE-SYNCED OPTIONS)
     // =========================================================================
     function getMonthKey(year, monthIndex0) {
       return `${year}-${String(monthIndex0 + 1).padStart(2, '0')}`;
@@ -857,7 +928,7 @@
       const key = getMonthKey(year, monthIndex0);
       const customDay = state.monthlyPaydays[key];
       const maxDaysInMonth = new Date(year, monthIndex0 + 1, 0).getDate();
-      const targetDay = customDay ? Number(customDay) : Number(state.defaultPayday || 25);
+      const targetDay = customDay ? Number(customDay) : Number(state.defaultPayday || 30);
       return Math.min(Math.max(1, targetDay), maxDaysInMonth);
     }
 
@@ -890,12 +961,15 @@
       const startISO = toISODate(startDate);
       const endISO = toISODate(endDate);
 
-      // Jika siklus dimulai di akhir bulan sebelumnya (misal 25 Okt - 24 Nov),
-      // tampilkan nama bulan aktifnya (November 2026) agar sesuai bulan berjalan.
       const displayMonth = startDay === 1 ? startMonth : nextMonth;
       const displayYear = startDay === 1 ? startYear : nextYear;
-      const label = `${INDO_MONTHS[displayMonth]} ${displayYear}`;
-      const rangeText = `${startDate.getDate()} ${INDO_SHORT_MONTHS[startMonth]} – ${endDate.getDate()} ${INDO_SHORT_MONTHS[nextMonth]} ${nextYear}`;
+      const monthNameLabel = `${INDO_MONTHS[displayMonth]} ${displayYear}`;
+
+      const rangeText = startYear === nextYear
+        ? `${startDate.getDate()} ${INDO_SHORT_MONTHS[startMonth]} – ${endDate.getDate()} ${INDO_SHORT_MONTHS[nextMonth]} ${nextYear}`
+        : `${startDate.getDate()} ${INDO_SHORT_MONTHS[startMonth]} ${startYear} – ${endDate.getDate()} ${INDO_SHORT_MONTHS[nextMonth]} ${nextYear}`;
+
+      const shortRangeLabel = `${startDate.getDate()} ${INDO_SHORT_MONTHS[startMonth]} – ${endDate.getDate()} ${INDO_SHORT_MONTHS[nextMonth]}`;
 
       return {
         offset,
@@ -908,9 +982,40 @@
         endDate,
         startISO,
         endISO,
-        label,
-        rangeText
+        label: monthNameLabel,
+        rangeText,
+        shortRangeLabel
       };
+    }
+
+    function getCycleOffsetForDate(isoDate) {
+      if (!isoDate) return 0;
+      for (let off = 0; off >= -60; off--) {
+        const c = getCycleRange(off);
+        if (isoDate >= c.startISO && isoDate <= c.endISO) return off;
+      }
+      for (let off = 1; off <= 24; off++) {
+        const c = getCycleRange(off);
+        if (isoDate >= c.startISO && isoDate <= c.endISO) return off;
+      }
+      return 0;
+    }
+
+    function getDatabaseCycleOffsets() {
+      const offsetSet = new Set([0]);
+      if (typeof state.cycleOffset === 'number') {
+        offsetSet.add(state.cycleOffset);
+      }
+      const monthCache = {};
+      for (const tx of state.transactions) {
+        if (!tx.date) continue;
+        const prefix = tx.date.slice(0, 10);
+        if (monthCache[prefix] === undefined) {
+          monthCache[prefix] = getCycleOffsetForDate(prefix);
+        }
+        offsetSet.add(monthCache[prefix]);
+      }
+      return Array.from(offsetSet).sort((a, b) => b - a);
     }
 
     function getCycleStats(offset = 0) {
@@ -1212,7 +1317,6 @@
           <button type="button" onclick="stopVoiceListening(); closeModal();" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
         </div>
 
-        <!-- Mic Button & Soundwave -->
         <div class="flex flex-col items-center justify-center py-4 bg-gradient-to-b from-[#E6F3F6]/70 to-white rounded-3xl border border-[#127084]/15 mb-3">
           <div class="relative flex items-center justify-center">
             ${voiceRuntime.isListening ? `
@@ -1237,7 +1341,6 @@
           <p class="text-[11px] font-semibold text-slate-600 mt-2.5 px-4 text-center">${escapeHTML(voiceRuntime.statusMessage)}</p>
         </div>
 
-        <!-- Live Transcript Box -->
         <div class="p-3 rounded-2xl bg-slate-900 text-white mb-3">
           <div class="text-[10px] uppercase tracking-wider text-teal-300 font-bold mb-1">Transkrip Ucapan</div>
           <div class="text-xs leading-relaxed min-h-[36px]">
@@ -1246,7 +1349,6 @@
           </div>
         </div>
 
-        <!-- Parsed Draft Cards -->
         <div class="space-y-2 max-h-48 overflow-y-auto pr-0.5 mb-3">
           ${draftsHTML}
         </div>
@@ -1474,13 +1576,15 @@
 
       const expenseCatsWithBudget = state.categories.filter(c => c.type === 'expense' && c.budgetLimit > 0);
 
-      // Lengkap 24 bulan (12 bulan ke belakang hingga 11 bulan ke depan)
-      const cycleOptionsList = [];
-      for (let off = -12; off <= 11; off++) {
+      // Siklus yang tampil disesuaikan langsung dengan database transaksi + siklus aktif
+      const dbOffsets = getDatabaseCycleOffsets();
+      const cycleOptions = dbOffsets.map(off => {
         const c = getCycleRange(off);
-        cycleOptionsList.push(`<option value="${off}" ${off === state.cycleOffset ? 'selected' : ''}>${escapeHTML(c.label)}</option>`);
-      }
-      const cycleOptions = cycleOptionsList.join('');
+        const suffix = off === 0 ? ' (Aktif)' : '';
+        return `<option value="${off}" ${off === state.cycleOffset ? 'selected' : ''}>${escapeHTML(c.shortRangeLabel)}${suffix}</option>`;
+      }).join('');
+
+      const showInstallBanner = !isAppInstalledStandalone() && !isInstallBannerDismissed();
 
       return `
         <!-- CURVED HERO HEADER -->
@@ -1518,7 +1622,7 @@
           </div>
 
           <!-- Cycle Filter Pills -->
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar mb-4">
+          <div data-tour="cycle-bar" class="flex items-center gap-2 overflow-x-auto no-scrollbar mb-4">
             <select onchange="changeCycleOffset(this.value)" class="bg-white text-[#0B4F5E] text-xs font-extrabold px-3 py-1.5 rounded-full shadow-2xs focus:outline-none">
               ${cycleOptions}
             </select>
@@ -1573,7 +1677,7 @@
 
         <!-- FLOATING QUICK ACTION CARD -->
         <div class="px-4 -mt-10">
-          <div class="bg-white rounded-3xl p-3.5 shadow-md border border-slate-100 grid grid-cols-5 gap-1 text-center">
+          <div data-tour="quick-actions" class="bg-white rounded-3xl p-3.5 shadow-md border border-slate-100 grid grid-cols-5 gap-1 text-center">
             <button onclick="openVoiceModal()" class="flex flex-col items-center gap-1.5 py-1 group">
               <div class="w-11 h-11 rounded-2xl bg-[#E6F3F6] text-[#127084] group-hover:bg-[#127084] group-hover:text-white flex items-center justify-center transition">
                 <i data-lucide="mic" class="w-5 h-5"></i>
@@ -1613,6 +1717,27 @@
 
         <!-- MAIN CONTENT CARDS -->
         <div class="px-4 mt-4 space-y-4">
+          ${showInstallBanner ? `
+            <!-- Friendly PWA Install Prompt Card -->
+            <div data-tour="pwa-install-card" class="bg-gradient-to-r from-[#0B4F5E] to-[#127084] text-white rounded-3xl p-3.5 shadow-sm flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
+                ${getCuanBrandLogoSVG('w-10 h-10')}
+                <div class="min-w-0">
+                  <div class="text-xs font-extrabold truncate">Pasang Cuan di Layar Utama</div>
+                  <div class="text-[10px] text-white/80 leading-snug">Buka cepat 1-tap seperti aplikasi asli di HP</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="handleSmartInstallClick()" class="px-3 py-1.5 rounded-full bg-white text-[#0B4F5E] text-[11px] font-extrabold shadow-2xs active:scale-95 transition">
+                  Install
+                </button>
+                <button type="button" onclick="dismissInstallBanner()" aria-label="Tutup" class="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs flex items-center justify-center">
+                  ✕
+                </button>
+              </div>
+            </div>
+          ` : ''}
+
           ${state.userMode !== 'supabase' ? `
             <!-- Guest Preview Callout Banner -->
             <div class="bg-white rounded-3xl p-4 shadow-xs border border-[#127084]/25">
@@ -1785,20 +1910,18 @@
           <div class="flex items-center justify-between mb-3">
             <div>
               <h1 class="text-base font-extrabold">Riwayat Transaksi</h1>
-              <p class="text-[11px] text-white/80">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
+              <p class="text-[11px] text-white/80">Siklus: ${escapeHTML(stats.cycle.rangeText)}</p>
             </div>
             <button onclick="openAddModal('manual')" class="px-3 py-1.5 rounded-full bg-white text-[#127084] text-xs font-extrabold shadow-2xs active:scale-95 transition">
               + Catat
             </button>
           </div>
 
-          <!-- Search Input -->
           <div class="relative mb-3">
             <input type="text" value="${escapeHTML(state.txSearchQuery)}" oninput="setTxSearchQuery(this.value)" placeholder="Cari catatan atau kategori..." class="w-full bg-white/15 placeholder-white/75 text-white text-xs rounded-2xl pl-9 pr-3 py-2.5 focus:outline-none focus:bg-white/25" />
             <i data-lucide="search" class="w-4 h-4 text-white/80 absolute left-3 top-2.5"></i>
           </div>
 
-          <!-- Filter Pills -->
           <div class="flex gap-2">
             ${[
               { id: 'all', label: 'Semua' },
@@ -1863,11 +1986,10 @@
       return `
         <div class="bg-[#127084] text-white pt-6 pb-6 px-4 rounded-b-3xl shadow-sm">
           <h1 class="text-base font-extrabold">Laporan & Analisis Cuan</h1>
-          <p class="text-[11px] text-white/80">${escapeHTML(stats.cycle.label)} (${escapeHTML(stats.cycle.rangeText)})</p>
+          <p class="text-[11px] text-white/80">Siklus: ${escapeHTML(stats.cycle.rangeText)}</p>
         </div>
 
         <div class="px-4 mt-4 space-y-4">
-          <!-- Chart Card -->
           <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100">
             <div class="flex items-center justify-between mb-3">
               <div>
@@ -1884,7 +2006,6 @@
             </div>
           </div>
 
-          <!-- Comparison & Pos Paling Boncos -->
           <div class="grid grid-cols-2 gap-3">
             <div class="bg-white rounded-3xl p-3.5 shadow-xs border border-slate-100">
               <div class="text-[10px] font-bold text-slate-400">Vs Siklus Lalu</div>
@@ -1907,7 +2028,6 @@
             </div>
           </div>
 
-          <!-- Setara Kalo Beli Apa -->
           <div class="bg-white rounded-3xl p-4 shadow-xs border border-slate-100">
             <div class="flex items-center justify-between mb-1">
               <h2 class="text-xs font-extrabold text-slate-900">Setara Kalo Beli Apa? 🤔</h2>
@@ -2041,7 +2161,7 @@
     }
 
     // =========================================================================
-    // 13. VIEW 4: LAINNYA (CLEAN USER SETTINGS, ACCENT THEME, BACKUP, LOGOUT)
+    // 13. VIEW 4: LAINNYA (SETTINGS, PWA INSTALL, UPDATE CHECK, DEVELOPER FOOTER)
     // =========================================================================
     function renderLainnyaView() {
       const themeSwatches = Object.entries(ACCENT_THEMES).map(([key, item]) => {
@@ -2055,6 +2175,8 @@
           </button>
         `;
       }).join('');
+
+      const installed = isAppInstalledStandalone();
 
       return `
         <div class="bg-[#127084] text-white pt-6 pb-6 px-4 rounded-b-3xl shadow-sm">
@@ -2172,21 +2294,21 @@
                 </div>
                 <div>
                   <div class="text-xs font-extrabold text-slate-900">Tur Panduan Fitur Cuan</div>
-                  <div class="text-[11px] text-slate-400">Lihat ulang penjelasan singkat cara pakai aplikasi</div>
+                  <div class="text-[11px] text-slate-400">Lihat ulang sorotan & penjelasan cara pakai</div>
                 </div>
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
-            ${deferredPWAInstallPrompt ? `
-              <button onclick="triggerPWAInstall()" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
+            ${!installed ? `
+              <button onclick="handleSmartInstallClick()" class="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition text-left">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <i data-lucide="smartphone" class="w-5 h-5"></i>
                   </div>
                   <div>
                     <div class="text-xs font-extrabold text-slate-900">Install Aplikasi Cuan di HP</div>
-                    <div class="text-[11px] text-slate-400">Pasang di layar utama biar buka lebih cepat</div>
+                    <div class="text-[11px] text-slate-400">Pasang di layar utama Android / iPhone</div>
                   </div>
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
@@ -2235,6 +2357,21 @@
               </div>
               <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
+          </div>
+
+          <!-- App Info, Update Check & Developer Credit -->
+          <div class="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 flex flex-col items-center text-center">
+            ${getCuanBrandLogoSVG('w-11 h-11 mb-2')}
+            <div class="text-xs font-extrabold text-slate-900">Cuan — Catatan Keuangan & Siklus Gajian</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Versi ${APP_VERSION} • PWA Cloud Sync</div>
+
+            <button type="button" onclick="checkForAppUpdatesManual()" class="mt-2.5 px-3.5 py-1.5 rounded-full bg-[#E6F3F6] hover:bg-[#127084] text-[#127084] hover:text-white text-[11px] font-extrabold transition">
+              🔄 Cek Update Aplikasi
+            </button>
+
+            <div class="w-full border-t border-slate-100 mt-3.5 pt-3 text-[11px] text-slate-500">
+              Developed with <span class="text-rose-500">♥</span> by <strong class="text-slate-800 font-extrabold">hann</strong>
+            </div>
           </div>
         </div>
       `;
@@ -2612,7 +2749,7 @@
     }
 
     // =========================================================================
-    // 15. FEATURE MODALS (PAYDAY, BUDGET LIMIT, CATEGORIES, REMINDER, AUTH, TOUR)
+    // 15. FEATURE MODALS (PAYDAY, BUDGET LIMIT, CATEGORIES, REMINDER, AUTH, PWA)
     // =========================================================================
     function openPaydayModal() {
       if (!requireAuthForRecording('atur tanggal gajian')) return;
@@ -2630,22 +2767,34 @@
         `);
       }
 
+      const customCount = Object.keys(state.monthlyPaydays || {}).length;
+
       showModal(`
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-base font-extrabold text-slate-900">Atur Tanggal Gajian</h3>
           <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
         </div>
         <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">
-          Tanggal gajian sering maju kalau kena weekend? Kamu bisa bedakan tanggal gajian tiap bulannya di sini.
+          Semua bulan otomatis mengikuti <strong>Tanggal Gajian Default</strong> (otomatis menyesuaikan tgl 28/29 di bulan Februari), kecuali kamu isi tanggal khusus di bulan tertentu.
         </p>
 
         <form onsubmit="savePaydaySettings(event)" class="space-y-3">
-          <div class="p-3 rounded-2xl bg-[#E6F3F6] flex items-center justify-between">
-            <span class="text-xs font-extrabold text-[#0B4F5E]">Tanggal Gajian Default</span>
-            <input id="defaultPaydayInput" type="number" min="1" max="31" required value="${state.defaultPayday}" class="w-20 bg-white border border-[#127084]/30 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-center text-[#127084]" />
+          <div class="p-3 rounded-2xl bg-[#E6F3F6] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-[#0B4F5E]">Tanggal Gajian Default</span>
+              <input id="defaultPaydayInput" type="number" min="1" max="31" required value="${state.defaultPayday}" oninput="document.querySelectorAll('.month-payday-input').forEach(el => el.placeholder = 'Default (' + (this.value || 30) + ')')" class="w-20 bg-white border border-[#127084]/30 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-center text-[#127084]" />
+            </div>
+            ${customCount > 0 ? `
+              <div class="flex items-center justify-between pt-1 border-t border-[#127084]/15">
+                <span class="text-[10px] text-[#0E5A6A]">Ada ${customCount} bulan dengan tanggal khusus</span>
+                <button type="button" onclick="applyDefaultPaydayToAllMonths()" class="text-[10px] font-extrabold text-[#127084] underline">
+                  Terapkan Default ke Semua
+                </button>
+              </div>
+            ` : ''}
           </div>
 
-          <div class="max-h-56 overflow-y-auto pr-1">
+          <div class="max-h-52 overflow-y-auto pr-1">
             ${rows.join('')}
           </div>
 
@@ -2654,6 +2803,22 @@
           </button>
         </form>
       `);
+    }
+
+    function applyDefaultPaydayToAllMonths() {
+      const defInp = document.getElementById('defaultPaydayInput');
+      const defVal = defInp ? parseInt(defInp.value, 10) : state.defaultPayday;
+      if (defVal >= 1 && defVal <= 31) {
+        state.defaultPayday = defVal;
+      }
+      state.monthlyPaydays = {};
+      document.querySelectorAll('.month-payday-input').forEach(inp => {
+        inp.value = '';
+        inp.placeholder = `Default (${state.defaultPayday})`;
+      });
+      saveStateToStorage();
+      showToast('Default Diterapkan ke Semua Bulan 📅', `Seluruh bulan kini mengikuti tanggal ${state.defaultPayday}.`, 'mint');
+      render();
     }
 
     function savePaydaySettings(e) {
@@ -2665,12 +2830,13 @@
       document.querySelectorAll('.month-payday-input').forEach(inp => {
         const mk = inp.getAttribute('data-month-key');
         const v = parseInt(inp.value, 10);
-        if (v >= 1 && v <= 31) {
+        if (v >= 1 && v <= 31 && v !== state.defaultPayday) {
           state.monthlyPaydays[mk] = v;
         } else {
           delete state.monthlyPaydays[mk];
         }
       });
+      state.cycleOffset = 0;
       saveStateToStorage();
       closeModal();
       showToast('Siklus Gajian Diperbarui 📅', 'Perhitungan saldo & laporan otomatis menyesuaikan.', 'mint');
@@ -2871,90 +3037,253 @@
     }
 
     // =========================================================================
-    // 15B. INTERACTIVE ONBOARDING FEATURE TOUR
+    // 15B. PWA INSTALL GUIDE MODAL (ANDROID & IPHONE TUTORIAL + 1-CLICK PROMPT)
+    // =========================================================================
+    function handleSmartInstallClick() {
+      if (deferredPWAInstallPrompt) {
+        deferredPWAInstallPrompt.prompt();
+        deferredPWAInstallPrompt.userChoice.then((choice) => {
+          if (choice && choice.outcome === 'accepted') {
+            deferredPWAInstallPrompt = null;
+            showToast('Cuan Berhasil Dipasang! 🎉', 'Cek ikon aplikasi Cuan di layar utama HP kamu.', 'mint');
+            render();
+          } else {
+            openInstallGuideModal();
+          }
+        });
+      } else {
+        openInstallGuideModal();
+      }
+    }
+
+    function openInstallGuideModal(deviceTab = 'android') {
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const activeTab = deviceTab || (isIOS ? 'ios' : 'android');
+
+      showModal(`
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            ${getCuanBrandLogoSVG('w-9 h-9')}
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900">Install Aplikasi Cuan di HP</h3>
+              <p class="text-[10px] text-slate-400">Ringan, tanpa Play Store, & langsung di layar utama</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-sm font-bold">✕</button>
+        </div>
+
+        ${deferredPWAInstallPrompt ? `
+          <button type="button" onclick="closeModal(); handleSmartInstallClick();" class="w-full py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md mb-3 active:scale-95 transition">
+            📲 Install Otomatis Sekarang (1-Klik)
+          </button>
+        ` : ''}
+
+        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-2xl mb-3">
+          <button type="button" onclick="openInstallGuideModal('android')" class="py-2 rounded-xl text-[11px] font-extrabold transition ${activeTab === 'android' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">🤖 Android (Chrome)</button>
+          <button type="button" onclick="openInstallGuideModal('ios')" class="py-2 rounded-xl text-[11px] font-extrabold transition ${activeTab === 'ios' ? 'bg-white text-[#127084] shadow-2xs' : 'text-slate-500'}">🍎 iPhone (Safari)</button>
+        </div>
+
+        ${activeTab === 'android' ? `
+          <div class="space-y-2.5 text-xs text-slate-700">
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">1</span>
+              <div>Pastikan link terbuka di aplikasi <strong>Google Chrome</strong> (bukan browser di dalam WhatsApp).</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">2</span>
+              <div>Ketuk ikon <strong>titik tiga (⋮)</strong> di pojok kanan atas Chrome.</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">3</span>
+              <div>Pilih <strong>"Install aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong> lalu konfirmasi <strong>Install</strong>.</div>
+            </div>
+          </div>
+        ` : `
+          <div class="space-y-2.5 text-xs text-slate-700">
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">1</span>
+              <div>Buka halaman Cuan menggunakan browser <strong>Safari</strong> di iPhone/iPad kamu.</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">2</span>
+              <div>Ketuk tombol <strong>Bagikan / Share (ikon kotak dengan panah ke atas ⬆️)</strong> di bagian bawah layar.</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F7F8] flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#127084] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">3</span>
+              <div>Gulir ke bawah, pilih <strong>"Add to Home Screen" (Tambah ke Layar Utama)</strong>, lalu ketuk <strong>Add</strong>.</div>
+            </div>
+          </div>
+        `}
+      `);
+    }
+
+    // =========================================================================
+    // 15C. INTERACTIVE SPOTLIGHT FEATURE TOUR (WITH ELEMENT HIGHLIGHTING)
     // =========================================================================
     const TOUR_STEPS = [
       {
-        emoji: '👋',
-        badge: 'Langkah 1 dari 5',
-        title: 'Selamat Datang di Cuan!',
-        desc: 'Aplikasi pencatat keuangan yang menghitung arus kas sesuai tanggal gajianmu—bukan tanggal 1–30 yang kaku.'
-      },
-      {
+        selector: '[data-tour="cycle-bar"]',
         emoji: '📅',
-        badge: 'Langkah 2 dari 5',
-        title: 'Siklus Gajian & Limit Pos',
-        desc: 'Kamu bisa atur tanggal gajian berbeda tiap bulan dan pasang batas maksimal pengeluaran tiap kategori biar nggak boncos.'
+        badge: 'Langkah 1 dari 6',
+        title: 'Siklus Gajian Dinamis',
+        desc: 'Ganti periode siklus sesuai tanggal gajianmu (default tgl 30), atau atur limit batas maksimal belanja tiap pos.'
       },
       {
+        selector: '[data-tour="quick-actions"]',
+        emoji: '⚡',
+        badge: 'Langkah 2 dari 6',
+        title: '5 Aksi Cepat di Ujung Jari',
+        desc: 'Catat transaksi lewat Suara, ketik santai pake AI, scan struk QRIS, atur tanggal gajian, hingga sinkronisasi cloud.'
+      },
+      {
+        selector: '#centerPlusBtn',
         emoji: '🎙️',
-        badge: 'Langkah 3 dari 5',
-        title: 'Tahan Tombol (+) untuk Suara!',
-        desc: 'Tap tombol (+) di tengah untuk catat manual/AI/struk, atau tahan tombol (+) selama 0,5 detik untuk langsung ngomong!'
+        badge: 'Langkah 3 dari 6',
+        title: 'Tap (+) atau Tahan untuk Suara',
+        desc: 'Tap sekali tombol (+) ini untuk catat transaksi, atau tahan selama 0,5 detik untuk langsung mengaktifkan mikrofon suara!'
       },
       {
+        selector: '#tab-transaksi',
+        emoji: '✏️',
+        badge: 'Langkah 4 dari 6',
+        title: 'Edit & Hapus Transaksi (CRUD)',
+        desc: 'Salah ketik nominal atau kategori? Buka menu Transaksi untuk mencari, mengedit, atau menghapus catatan kapan saja.'
+      },
+      {
+        selector: '#tab-laporan',
         emoji: '📊',
-        badge: 'Langkah 4 dari 5',
-        title: 'Vibe Check & Laporan Lengkap',
-        desc: 'Lihat grafik masuk vs keluar, cek seberapa hemat kamu dibanding siklus lalu, dan edit transaksi kapan saja di menu Transaksi.'
+        badge: 'Langkah 5 dari 6',
+        title: 'Grafik & Vibe Check Hemat/Boros',
+        desc: 'Lihat grafik arus masuk vs keluar, cek seberapa hemat kamu dibanding siklus lalu, dan analisis pos paling boncos.'
       },
       {
-        emoji: '☁️',
-        badge: 'Langkah 5 dari 5',
-        title: 'Login Sekali, Tersimpan Selamanya',
-        desc: 'Masuk pake Google atau Email agar seluruh catatan cuanmu otomatis tersinkron ke cloud dan aman meski ganti HP.'
+        selector: '[data-tour="pwa-install-card"]',
+        emoji: '📲',
+        badge: 'Langkah 6 dari 6',
+        title: 'Pasang Cuan di Layar Utama HP',
+        desc: 'Install Cuan ke Home Screen HP kamu (Android Chrome: titik tiga ⋮ → Install aplikasi | iPhone Safari: Share → Add to Home Screen).',
+        showInstallCta: true
       }
     ];
 
     function startFeatureTour(stepIndex = 0) {
-      const idx = Math.max(0, Math.min(TOUR_STEPS.length - 1, stepIndex));
+      closeModal();
+      if (state.activeTab !== 'beranda') {
+        state.activeTab = 'beranda';
+        render();
+      }
+      activeTourStepIndex = Math.max(0, Math.min(TOUR_STEPS.length - 1, stepIndex));
+      renderSpotlightTourStep();
+    }
+
+    function renderSpotlightTourStep() {
+      const overlay = document.getElementById('tourOverlay');
+      if (!overlay || activeTourStepIndex === null) return;
+
+      const idx = activeTourStepIndex;
       const step = TOUR_STEPS[idx];
       const isLast = idx === TOUR_STEPS.length - 1;
+      const targetEl = step.selector ? document.querySelector(step.selector) : null;
 
-      const dotsHtml = TOUR_STEPS.map((_, i) =>
-        `<span class="h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-[#127084]' : 'w-1.5 bg-slate-200'}"></span>`
-      ).join('');
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
 
-      showModal(`
-        <div class="flex items-center justify-between mb-3">
-          <span class="px-2.5 py-1 rounded-full bg-[#E6F3F6] text-[#127084] text-[10px] font-extrabold">${escapeHTML(step.badge)}</span>
-          <button type="button" onclick="finishFeatureTour()" class="text-[11px] font-bold text-slate-400 hover:text-slate-600">Lewati</button>
-        </div>
+      setTimeout(() => {
+        if (activeTourStepIndex !== idx) return;
+        const rect = targetEl ? targetEl.getBoundingClientRect() : null;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
 
-        <div class="text-center py-4 px-2">
-          <div class="w-16 h-16 rounded-3xl bg-[#E6F3F6] text-3xl flex items-center justify-center mx-auto mb-3 shadow-2xs">
-            ${step.emoji}
+        let spotlightHtml = '';
+        let tooltipStyle = 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
+
+        if (rect && rect.width > 0 && rect.height > 0) {
+          const pad = 6;
+          const top = Math.max(4, rect.top - pad);
+          const left = Math.max(4, rect.left - pad);
+          const width = Math.min(vw - 8, rect.width + pad * 2);
+          const height = rect.height + pad * 2;
+          const isBottomTarget = rect.top > vh * 0.52;
+
+          spotlightHtml = `
+            <div class="tour-spotlight-ring fixed pointer-events-none rounded-2xl z-[61]" style="top:${top}px; left:${left}px; width:${width}px; height:${height}px;"></div>
+          `;
+
+          if (isBottomTarget) {
+            const bottomPos = Math.max(16, vh - top + 14);
+            tooltipStyle = `bottom: ${bottomPos}px; left: 50%; transform: translateX(-50%);`;
+          } else {
+            const topPos = Math.min(vh - 260, top + height + 14);
+            tooltipStyle = `top: ${Math.max(16, topPos)}px; left: 50%; transform: translateX(-50%);`;
+          }
+        } else {
+          spotlightHtml = `<div class="fixed inset-0 bg-slate-900/75 pointer-events-none z-[61]"></div>`;
+        }
+
+        const dotsHtml = TOUR_STEPS.map((_, i) =>
+          `<span class="h-1.5 rounded-full transition-all ${i === idx ? 'w-5 bg-[#127084]' : 'w-1.5 bg-slate-200'}"></span>`
+        ).join('');
+
+        overlay.innerHTML = `
+          ${spotlightHtml}
+          <div class="fixed z-[62] w-[92%] max-w-sm bg-white rounded-3xl p-4 shadow-2xl border border-slate-100" style="${tooltipStyle}">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-[#E6F3F6] text-[#127084] text-[10px] font-extrabold">${escapeHTML(step.badge)}</span>
+              <button type="button" onclick="finishFeatureTour()" class="text-[11px] font-bold text-slate-400 hover:text-slate-600">Lewati</button>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-[#E6F3F6] text-xl flex items-center justify-center shrink-0">
+                ${step.emoji}
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-sm font-extrabold text-slate-900">${escapeHTML(step.title)}</h3>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">${escapeHTML(step.desc)}</p>
+              </div>
+            </div>
+
+            ${step.showInstallCta ? `
+              <button type="button" onclick="finishFeatureTour(); handleSmartInstallClick();" class="w-full mt-3 py-2 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-[11px] border border-emerald-200 transition">
+                📲 Buka Panduan / Install Sekarang
+              </button>
+            ` : ''}
+
+            <div class="flex items-center justify-between gap-2 mt-4 pt-2.5 border-t border-slate-100">
+              <div class="flex items-center gap-1">
+                ${dotsHtml}
+              </div>
+              <div class="flex items-center gap-1.5">
+                ${idx > 0 ? `
+                  <button type="button" onclick="startFeatureTour(${idx - 1})" class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 font-extrabold text-[11px]">
+                    Kembali
+                  </button>
+                ` : ''}
+                <button type="button" onclick="${isLast ? 'finishFeatureTour()' : `startFeatureTour(${idx + 1})`}" class="px-4 py-1.5 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-[11px] shadow-xs transition">
+                  ${isLast ? 'Selesai 🚀' : 'Lanjut →'}
+                </button>
+              </div>
+            </div>
           </div>
-          <h3 class="text-base font-extrabold text-slate-900 mb-1.5">${escapeHTML(step.title)}</h3>
-          <p class="text-xs text-slate-500 leading-relaxed">${escapeHTML(step.desc)}</p>
-        </div>
-
-        <div class="flex items-center justify-center gap-1.5 my-3">
-          ${dotsHtml}
-        </div>
-
-        <div class="flex items-center gap-2 mt-4">
-          ${idx > 0 ? `
-            <button type="button" onclick="startFeatureTour(${idx - 1})" class="flex-1 py-3 rounded-full bg-slate-100 text-slate-700 font-extrabold text-xs">
-              Sebelumnya
-            </button>
-          ` : ''}
-          <button type="button" onclick="${isLast ? 'finishFeatureTour()' : `startFeatureTour(${idx + 1})`}" class="flex-1 py-3 rounded-full bg-[#127084] hover:bg-[#0E5A6A] text-white font-extrabold text-xs shadow-md transition">
-            ${isLast ? 'Mulai Pakai Cuan 🚀' : 'Lanjut'}
-          </button>
-        </div>
-      `);
+        `;
+        overlay.classList.remove('hidden');
+      }, 220);
     }
 
     function finishFeatureTour() {
+      activeTourStepIndex = null;
+      const overlay = document.getElementById('tourOverlay');
+      if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.innerHTML = '';
+      }
       try {
         localStorage.setItem(TOUR_COMPLETED_KEY, '1');
       } catch (e) {}
-      closeModal();
     }
 
     // =========================================================================
-    // 15C. ACCOUNT, LOGIN, FORGOT PASSWORD & LOGOUT MODAL
+    // 15D. ACCOUNT, LOGIN, FORGOT PASSWORD & LOGOUT MODAL
     // =========================================================================
     function switchAuthModalTab(tab) {
       state.authModalTab = tab;
@@ -3027,7 +3356,6 @@
             </p>
           `}
 
-          <!-- 1-Click Google OAuth Button -->
           <button type="button" onclick="handleGoogleLoginClick()" class="w-full py-3 rounded-full bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center justify-center gap-2.5 text-xs font-extrabold text-slate-800 active:scale-95 transition mb-3">
             <svg class="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
@@ -3083,6 +3411,7 @@
     function exportJSONBackup() {
       const backupObj = {
         app: 'Cuan PWA',
+        version: APP_VERSION,
         exportedAt: new Date().toISOString(),
         defaultPayday: state.defaultPayday,
         monthlyPaydays: state.monthlyPaydays,
@@ -3141,15 +3470,6 @@
       a.click();
       URL.revokeObjectURL(url);
       showToast('CSV Diunduh 📊', 'Siap dibuka di Microsoft Excel atau Google Sheets.', 'mint');
-    }
-
-    function triggerPWAInstall() {
-      if (!deferredPWAInstallPrompt) return;
-      deferredPWAInstallPrompt.prompt();
-      deferredPWAInstallPrompt.userChoice.then(() => {
-        deferredPWAInstallPrompt = null;
-        render();
-      });
     }
 
     function createSampleReceiptDataUrl() {
@@ -3258,12 +3578,88 @@
     }
 
     // =========================================================================
-    // 18. BOOTSTRAP & SERVICE WORKER REGISTRATION
+    // 18. SERVICE WORKER REGISTRATION & APP UPDATE CHECKER
+    // =========================================================================
+    function showUpdateAvailableBanner(reg) {
+      if (reg && reg.waiting) {
+        waitingServiceWorker = reg.waiting;
+      }
+      const banner = document.getElementById('appUpdateBanner');
+      if (banner) banner.classList.remove('hidden');
+    }
+
+    function applyAppUpdate() {
+      if (waitingServiceWorker) {
+        waitingServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+      }
+      window.location.reload();
+    }
+
+    async function checkForAppUpdatesManual() {
+      if (!('serviceWorker' in navigator)) {
+        window.location.reload();
+        return;
+      }
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          showToast('Versi Terbaru Aktif ✅', `Kamu sudah menggunakan Cuan v${APP_VERSION}.`, 'mint');
+          return;
+        }
+        await reg.update();
+        if (reg.waiting) {
+          showUpdateAvailableBanner(reg);
+          showToast('Update Ditemukan! 🚀', 'Klik tombol Update di bagian atas untuk memuat versi baru.', 'teal');
+        } else {
+          showToast('Aplikasi Sudah Terbaru ✅', `Kamu sudah memakai versi paling baru (v${APP_VERSION}).`, 'mint');
+        }
+      } catch (e) {
+        showToast('Gagal Cek Update', 'Pastikan koneksi internet aktif lalu coba lagi.', 'amber');
+      }
+    }
+
+    function setupServiceWorkerUpdates() {
+      if (!('serviceWorker' in navigator) || !window.location.protocol.startsWith('http')) return;
+
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        if (reg.waiting) {
+          showUpdateAvailableBanner(reg);
+        }
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              waitingServiceWorker = newWorker;
+              showUpdateAvailableBanner(reg);
+            }
+          });
+        });
+      }).catch(() => {});
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) reg.update().catch(() => {});
+          });
+        }
+      });
+    }
+
+    // =========================================================================
+    // 19. BOOTSTRAP
     // =========================================================================
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPWAInstallPrompt = e;
-      if (state.activeTab === 'lainnya') render();
+      if (state.activeTab === 'beranda' || state.activeTab === 'lainnya') render();
     });
 
     function bootCuanApp() {
@@ -3280,6 +3676,7 @@
 
       bindCenterPlusGestures();
       setupDailyReminderScheduler();
+      setupServiceWorkerUpdates();
       render();
       initSupabaseAuthListener();
 
@@ -3288,10 +3685,6 @@
           setTimeout(() => startFeatureTour(0), 500);
         }
       } catch (e) {}
-
-      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-      }
     }
 
     if (document.readyState === 'loading') {
