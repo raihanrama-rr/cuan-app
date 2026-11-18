@@ -2,7 +2,7 @@
 "name": "Cuan - Catatan Keuangan",
 "short_name": "Cuan",
 "description": "Aplikasi pencatat keuangan, suara & siklus gajian",
-"start_url": "/",
+"start_url": "/?v=2.5",
 "scope": "/",
 "display": "standalone",
 "orientation": "portrait",
@@ -10,16 +10,22 @@
 "theme_color": "#127084",
 "icons": [
 {
+"src": "/icon-192.png",
+"sizes": "192x192",
+"type": "image/png",
+"purpose": "any maskable"
+},
+{
+"src": "/icon-512.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any maskable"
+},
+{
 "src": "/icon.svg",
 "sizes": "any",
 "type": "image/svg+xml",
 "purpose": "any"
-},
-{
-"src": "/icon.svg",
-"sizes": "512x512",
-"type": "image/svg+xml",
-"purpose": "maskable"
 }
 ]
 }
