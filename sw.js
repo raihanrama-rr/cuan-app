@@ -1,8 +1,8 @@
-const CACHE_NAME = 'cuan-pwa-v2.2.0';
+const CACHE_NAME = 'cuan-pwa-v2.2.1';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.json']).catch(() => {}))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/', '/manifest.json', '/icon.svg']).catch(() => {}))
   );
 });
 
