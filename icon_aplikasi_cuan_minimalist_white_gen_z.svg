@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="cuanBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#147D93" />
+      <stop offset="100%" stop-color="#083D49" />
+    </linearGradient>
+    <linearGradient id="cuanWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2F1F4" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background for clean adaptive maskable cropping on Android & iOS -->
+  <rect width="512" height="512" fill="url(#cuanBg)" />
+
+  <!-- Subtle glassmorphism halo -->
+  <circle cx="256" cy="256" r="176" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="14" />
+
+  <!-- Minimalist Bold White Geometric 'C' -->
+  <path d="M322 184 A98 98 0 1 0 322 328" stroke="url(#cuanWhite)" stroke-width="42" stroke-linecap="round" />
+
+  <!-- Clean Upward Growth Line (Pure White) -->
+  <path d="M244 274 L292 226 L324 246 L368 196" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Gen-Z 4-Point Sparkle Accent -->
+  <path d="M376 144 C376 164 382 170 402 170 C382 170 376 176 376 196 C376 176 370 170 350 170 C370 170 376 164 376 144 Z" fill="#FFFFFF" />
+  <circle cx="332" cy="146" r="6" fill="#FFFFFF" fill-opacity="0.75" />
+</svg>
