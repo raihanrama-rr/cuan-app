@@ -314,7 +314,9 @@
       txFilter: 'all', // 'all' | 'expense' | 'income'
       chartMode: 'daily', // 'daily' | 'weekly'
       syncStatus: 'local', // 'local' | 'syncing' | 'synced' | 'error'
-      tourStep: -1 // -1 = inactive, 0..4 = active step
+      tourStep: -1, // -1 = inactive, 0..4 = active step
+      isPasswordRecovery: false,
+      resetCooldownUntil: 0
     };
 
     /**
@@ -545,13 +547,27 @@
         if (!window.supabase || !SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) return;
         supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
 
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-          currentUser = session.user;
-          await loadUserDataFromCloud();
+        // Deteksi apakah user baru kembali dari link email Reset Password Supabase
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const queryParams = new URLSearchParams(window.location.search);
+        const hasRecoveryInUrl = hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery';
+        if (hasRecoveryInUrl) {
+          uiState.isPasswordRecovery = true;
         }
 
+        // Pasang listener lebih awal agar event PASSWORD_RECOVERY tidak terlewat
         supabaseClient.auth.onAuthStateChange(async (event, sessionObj) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            currentUser = sessionObj?.user || currentUser;
+            uiState.isPasswordRecovery = true;
+            if (currentUser) {
+              await loadUserDataFromCloud();
+            }
+            renderApp();
+            openNewPasswordModal();
+            return;
+          }
+
           if (event === 'SIGNED_IN' && sessionObj?.user) {
             currentUser = sessionObj.user;
             if (!appState.userName || appState.userName === 'Sobat Cuan') {
@@ -559,12 +575,32 @@
             }
             await loadUserDataFromCloud();
             renderApp();
+            if (uiState.isPasswordRecovery) {
+              openNewPasswordModal();
+            }
           } else if (event === 'SIGNED_OUT') {
             currentUser = null;
             uiState.syncStatus = 'local';
+            uiState.isPasswordRecovery = false;
             renderApp();
           }
         });
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          currentUser = session.user;
+          await loadUserDataFromCloud();
+          if (uiState.isPasswordRecovery) {
+            openNewPasswordModal();
+          }
+        } else if (hasRecoveryInUrl) {
+          // Jika token recovery di URL sudah kedaluwarsa atau gagal diproses
+          uiState.isPasswordRecovery = false;
+          window.history.replaceState({}, document.title, window.location.pathname);
+          showToast('⚠️ Link reset sandi sudah kedaluwarsa. Silakan minta link baru.', 'warning');
+          authFormMode = 'forgot';
+          openAuthOrProfileModal();
+        }
       } catch (err) {
         console.error('Supabase init error:', err);
       }
@@ -649,11 +685,19 @@
 
     function translateAuthError(msg) {
       const m = String(msg || '').toLowerCase();
+      const waitMatch = m.match(/after\s+(\d+)\s+seconds?/);
+      if (waitMatch) {
+        const sec = Number(waitMatch[1]) || 15;
+        uiState.resetCooldownUntil = Date.now() + sec * 1000;
+        return `Demi keamanan, tunggu ${sec} detik lagi sebelum kirim ulang link reset sandi.`;
+      }
+      if (m.includes('new password should be different')) return 'Kata sandi baru harus berbeda dari kata sandi lama.';
+      if (m.includes('auth session missing') || m.includes('session_not_found')) return 'Sesi reset sandi sudah habis. Minta link reset sandi baru ya.';
       if (m.includes('invalid login credentials')) return 'Email atau kata sandi salah. Coba cek lagi ya!';
       if (m.includes('user already registered')) return 'Email ini sudah terdaftar. Silakan langsung Masuk.';
       if (m.includes('password should be at least')) return 'Kata sandi minimal 6 karakter.';
       if (m.includes('email not confirmed')) return 'Email belum dikonfirmasi. Cek inbox atau matikan Confirm Email di Supabase.';
-      if (m.includes('rate limit')) return 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.';
+      if (m.includes('rate limit') || m.includes('too many requests')) return 'Terlalu banyak percobaan. Tunggu sekitar 1 menit lalu coba lagi.';
       return msg || 'Terjadi kendala autentikasi. Coba beberapa saat lagi.';
     }
 
@@ -2444,6 +2488,128 @@
      * ============================================================================
      */
     let authFormMode = 'login'; // 'login' | 'register' | 'forgot'
+    let resetCooldownInterval = null;
+
+    function togglePasswordVisibility(inputId, btnEl) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      const isHidden = inp.type === 'password';
+      inp.type = isHidden ? 'text' : 'password';
+      if (btnEl) btnEl.textContent = isHidden ? '🙈' : '👁️';
+    }
+
+    function startResetCooldownTimer() {
+      clearInterval(resetCooldownInterval);
+      const updateBtn = () => {
+        const btn = document.getElementById('auth-submit-btn');
+        if (!btn || authFormMode !== 'forgot') {
+          clearInterval(resetCooldownInterval);
+          return;
+        }
+        const rem = Math.ceil((uiState.resetCooldownUntil - Date.now()) / 1000);
+        if (rem > 0) {
+          btn.disabled = true;
+          btn.classList.add('opacity-60', 'cursor-not-allowed');
+          btn.textContent = `Tunggu ${rem} detik untuk kirim ulang...`;
+        } else {
+          clearInterval(resetCooldownInterval);
+          btn.disabled = false;
+          btn.classList.remove('opacity-60', 'cursor-not-allowed');
+          btn.textContent = 'Kirim Link Reset Sandi';
+        }
+      };
+      updateBtn();
+      resetCooldownInterval = setInterval(updateBtn, 500);
+    }
+
+    function openNewPasswordModal() {
+      const root = document.getElementById('modal-root');
+      if (!root) return;
+
+      // Bersihkan parameter token recovery dari URL agar rapi
+      if (window.location.hash || window.location.search) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      root.innerHTML = `
+        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 shadow-2xl space-y-4">
+            <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-1"></div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">🔐 Buat Kata Sandi Baru</h2>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  ${currentUser?.email ? `Untuk akun <b>${escapeHtml(currentUser.email)}</b>` : 'Masukkan kata sandi baru untuk akun Cuan kamu'}
+                </p>
+              </div>
+              <button onclick="uiState.isPasswordRecovery = false; closeModal();" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-sm">✕</button>
+            </div>
+
+            <form onsubmit="handleUpdateNewPassword(event)" class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 mb-1">Kata Sandi Baru</label>
+                <div class="relative">
+                  <input id="new-reset-password" type="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-3 outline-none focus:border-brand" />
+                  <button type="button" onclick="togglePasswordVisibility('new-reset-password', this)" class="absolute right-3 top-2.5 text-sm text-slate-400">👁️</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 mb-1">Ulangi Kata Sandi Baru</label>
+                <div class="relative">
+                  <input id="confirm-reset-password" type="password" required minlength="6" placeholder="Ketik ulang kata sandi baru" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-3 outline-none focus:border-brand" />
+                  <button type="button" onclick="togglePasswordVisibility('confirm-reset-password', this)" class="absolute right-3 top-2.5 text-sm text-slate-400">👁️</button>
+                </div>
+              </div>
+
+              <button type="submit" id="save-new-password-btn" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl shadow-md">
+                💾 Simpan Kata Sandi Baru
+              </button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleUpdateNewPassword(e) {
+      e.preventDefault();
+      if (!supabaseClient) return;
+
+      const newPassword = document.getElementById('new-reset-password')?.value || '';
+      const confirmPassword = document.getElementById('confirm-reset-password')?.value || '';
+      const btn = document.getElementById('save-new-password-btn');
+
+      if (newPassword.length < 6) {
+        showToast('Kata sandi baru minimal 6 karakter ya!', 'warning');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        showToast('Konfirmasi kata sandi tidak cocok. Coba cek lagi!', 'warning');
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan sandi baru...';
+      }
+
+      try {
+        const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+
+        uiState.isPasswordRecovery = false;
+        closeModal();
+        renderApp();
+        showToast('🎉 Kata sandi berhasil diganti! Kamu sudah masuk.', 'success');
+      } catch (err) {
+        showToast(translateAuthError(err.message), 'danger');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '💾 Simpan Kata Sandi Baru';
+        }
+      }
+    }
 
     function openAuthOrProfileModal() {
       const root = document.getElementById('modal-root');
@@ -2529,9 +2695,16 @@
                     <label class="text-[11px] font-bold text-slate-500">Kata Sandi</label>
                     ${authFormMode === 'login' ? `<button type="button" onclick="authFormMode='forgot'; openAuthOrProfileModal();" class="text-[11px] font-bold text-brand">Lupa sandi?</button>` : ''}
                   </div>
-                  <input id="auth-password" type="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3" />
+                  <div class="relative">
+                    <input id="auth-password" type="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-3" />
+                    <button type="button" onclick="togglePasswordVisibility('auth-password', this)" class="absolute right-3 top-2.5 text-sm text-slate-400">👁️</button>
+                  </div>
                 </div>
-              ` : ''}
+              ` : `
+                <p class="text-[11px] text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
+                  Masukkan email akunmu. Kami akan mengirimkan link untuk membuat kata sandi baru (jeda kirim ulang 60 detik).
+                </p>
+              `}
 
               <button type="submit" id="auth-submit-btn" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl shadow-md">
                 ${authFormMode === 'login' ? 'Masuk Sekarang' : (authFormMode === 'register' ? 'Daftar & Sinkronkan' : 'Kirim Link Reset Sandi')}
@@ -2547,6 +2720,10 @@
           </div>
         </div>
       `;
+
+      if (authFormMode === 'forgot' && uiState.resetCooldownUntil > Date.now()) {
+        startResetCooldownTimer();
+      }
     }
 
     async function handleGoogleLogin() {
@@ -2581,13 +2758,17 @@
 
       try {
         if (authFormMode === 'forgot') {
+          if (uiState.resetCooldownUntil > Date.now()) {
+            startResetCooldownTimer();
+            return;
+          }
           const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin
           });
           if (error) throw error;
-          showToast('📩 Link reset sandi sudah dikirim ke email kamu!', 'success');
-          authFormMode = 'login';
-          openAuthOrProfileModal();
+          uiState.resetCooldownUntil = Date.now() + 60000;
+          startResetCooldownTimer();
+          showToast('📩 Link reset sandi terkirim! Cek kotak masuk / folder Spam emailmu.', 'success');
           return;
         }
 
@@ -2617,8 +2798,11 @@
         }
       } catch (err) {
         showToast(translateAuthError(err.message), 'danger');
+        if (authFormMode === 'forgot' && uiState.resetCooldownUntil > Date.now()) {
+          startResetCooldownTimer();
+        }
       } finally {
-        if (btn) btn.disabled = false;
+        if (btn && authFormMode !== 'forgot') btn.disabled = false;
       }
     }
 
@@ -2663,16 +2847,42 @@
       },
       {
         targetId: 'tour-install-banner',
+        fallbackTargetId: 'nav-lainnya',
         title: '📲 Pasang Cuan di Layar Utama HP',
-        desc: 'Android Chrome: ketuk ikon titik tiga (⋮) → "Install aplikasi". iPhone Safari: ketuk ikon Share (□↑) → "Add to Home Screen".'
+        desc: 'Android Chrome: ketuk titik tiga (⋮) → "Install aplikasi". iPhone Safari: ketuk Share (□↑) → "Add to Home Screen".'
       }
     ];
 
+    let tourScrollTimer = null;
+
     function startSpotlightTour() {
       uiState.activeTab = 'beranda';
-      uiState.tourStep = 0;
       renderApp();
-      setTimeout(renderSpotlightTourStep, 120);
+      goToTourStep(0);
+    }
+
+    function goToTourStep(stepIndex) {
+      uiState.tourStep = stepIndex;
+      clearTimeout(tourScrollTimer);
+
+      const root = document.getElementById('tour-root');
+      if (!root) return;
+
+      if (uiState.tourStep < 0 || uiState.tourStep >= TOUR_STEPS.length) {
+        root.innerHTML = '';
+        localStorage.setItem(TOUR_SEEN_KEY, '1');
+        return;
+      }
+
+      const step = TOUR_STEPS[uiState.tourStep];
+      const targetEl = document.getElementById(step.targetId) || (step.fallbackTargetId ? document.getElementById(step.fallbackTargetId) : null);
+
+      if (targetEl && !targetEl.closest('nav')) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      renderSpotlightTourStep();
+      tourScrollTimer = setTimeout(renderSpotlightTourStep, 300);
     }
 
     function renderSpotlightTourStep() {
@@ -2686,47 +2896,154 @@
       }
 
       const step = TOUR_STEPS[uiState.tourStep];
-      const targetEl = document.getElementById(step.targetId);
+      const targetEl = document.getElementById(step.targetId) || (step.fallbackTargetId ? document.getElementById(step.fallbackTargetId) : null);
+      const shell = document.getElementById('app-shell');
+      const shellRect = shell
+        ? shell.getBoundingClientRect()
+        : { left: 0, right: window.innerWidth, width: window.innerWidth };
+
+      const cardWidth = Math.max(260, Math.min(shellRect.width - 24, 420));
+      const cardLeft = Math.round(shellRect.left + (shellRect.width - cardWidth) / 2);
+
       let boxHTML = '';
-      let cardTopStyle = 'top: 50%; transform: translateY(-50%);';
+      let targetBounds = null;
 
       if (targetEl) {
         const rect = targetEl.getBoundingClientRect();
         const pad = 6;
-        boxHTML = `<div class="tour-highlight-box" style="top:${rect.top - pad}px; left:${rect.left - pad}px; width:${rect.width + pad * 2}px; height:${rect.height + pad * 2}px;"></div>`;
+        const boxLeft = Math.max(shellRect.left + 6, rect.left - pad);
+        const boxRight = Math.min(shellRect.right - 6, rect.right + pad);
+        const boxTop = Math.max(6, rect.top - pad);
+        const boxBottom = Math.min(window.innerHeight - 6, rect.bottom + pad);
+        const boxWidth = Math.max(28, boxRight - boxLeft);
+        const boxHeight = Math.max(28, boxBottom - boxTop);
 
-        if (rect.top > window.innerHeight * 0.55) {
-          cardTopStyle = `bottom: ${window.innerHeight - rect.top + 18}px;`;
-        } else {
-          cardTopStyle = `top: ${rect.bottom + 18}px;`;
-        }
+        targetBounds = { top: boxTop, bottom: boxBottom };
+        boxHTML = `<div class="tour-highlight-box" style="top:${Math.round(boxTop)}px; left:${Math.round(boxLeft)}px; width:${Math.round(boxWidth)}px; height:${Math.round(boxHeight)}px;"></div>`;
       } else {
         boxHTML = `<div class="fixed inset-0 bg-slate-900/75 z-[90]"></div>`;
       }
 
       root.innerHTML = `
         ${boxHTML}
-        <div class="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] bg-white rounded-3xl p-4 shadow-2xl z-[95] border border-slate-100" style="${cardTopStyle}">
+        <div
+          id="tour-popup-card"
+          class="fixed bg-white rounded-3xl p-4 shadow-2xl z-[95] border border-slate-100 transition-all duration-200"
+          style="left:${cardLeft}px; width:${cardWidth}px; top:16px; visibility:hidden;"
+        >
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand bg-brand-tint px-2.5 py-0.5 rounded-full">
               Panduan ${uiState.tourStep + 1} / ${TOUR_STEPS.length}
             </span>
-            <button onclick="uiState.tourStep = -1; renderSpotlightTourStep();" class="text-xs text-slate-400 font-bold">Lewati</button>
+            <button onclick="goToTourStep(-1)" class="text-xs text-slate-400 hover:text-slate-600 font-bold px-1">Lewati</button>
           </div>
           <h3 class="text-sm font-extrabold text-slate-900">${step.title}</h3>
           <p class="text-xs text-slate-600 mt-1 leading-relaxed">${step.desc}</p>
           <div class="flex items-center justify-between mt-4">
             <button
-              onclick="uiState.tourStep = Math.max(0, uiState.tourStep - 1); renderSpotlightTourStep();"
+              onclick="goToTourStep(${Math.max(0, uiState.tourStep - 1)})"
               class="text-xs font-bold text-slate-500 px-3 py-1.5 rounded-xl ${uiState.tourStep === 0 ? 'invisible' : ''}"
             >
               ← Kembali
             </button>
             <button
-              onclick="uiState.tourStep++; renderSpotlightTourStep();"
+              onclick="goToTourStep(${uiState.tourStep + 1})"
               class="bg-brand text-white text-xs font-extrabold px-4 py-2 rounded-xl shadow-sm"
             >
               ${uiState.tourStep === TOUR_STEPS.length - 1 ? 'Siap Pakai! 🚀' : 'Lanjut →'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      const cardEl = document.getElementById('tour-popup-card');
+      if (cardEl) {
+        const cardH = cardEl.offsetHeight || 185;
+        const vh = window.innerHeight;
+        let cardTop = Math.round((vh - cardH) / 2);
+
+        if (targetBounds) {
+          const spaceBelow = vh - targetBounds.bottom - 14;
+          const spaceAbove = targetBounds.top - 14;
+
+          if (spaceBelow >= cardH + 12) {
+            cardTop = targetBounds.bottom + 14;
+          } else if (spaceAbove >= cardH + 12) {
+            cardTop = targetBounds.top - cardH - 14;
+          } else {
+            cardTop = spaceAbove > spaceBelow
+              ? targetBounds.top - cardH - 10
+              : targetBounds.bottom + 10;
+          }
+        }
+
+        // Kunci posisi vertikal agar tidak pernah terpotong di atas maupun bawah layar HP
+        cardTop = Math.max(12, Math.min(vh - cardH - 12, Math.round(cardTop)));
+        cardEl.style.top = `${cardTop}px`;
+        cardEl.style.visibility = 'visible';
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (uiState.tourStep >= 0 && uiState.tourStep < TOUR_STEPS.length) {
+        renderSpotlightTourStep();
+      }
+    });
+
+    /**
+     * ============================================================================
+     * 14. INSTALASI PWA, CEK UPDATE, DATA SIMULASI & EKSPOR CSV/JSON
+     * ============================================================================
+     */
+    async function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        try {
+          deferredInstallPrompt.prompt();
+          const choiceResult = await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          if (choiceResult && choiceResult.outcome === 'accepted') {
+            localStorage.setItem(INSTALL_DISMISSED_KEY, '1');
+            renderApp();
+            showToast('🎉 Aplikasi Cuan sedang dipasang ke layar utama!', 'success');
+          }
+          return;
+        } catch (err) {
+          console.warn('Prompt install PWA gagal:', err);
+        }
+      }
+
+      // Modal panduan visual jika prompt otomatis browser belum tersedia (misal Safari iOS)
+      const root = document.getElementById('modal-root');
+      if (!root) return;
+      root.innerHTML = `
+        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 shadow-2xl space-y-4">
+            <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-1"></div>
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-extrabold text-slate-900">📲 Cara Pasang Cuan di HP</h2>
+              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-sm">✕</button>
+            </div>
+
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
+              <p class="text-xs font-extrabold text-slate-900">🤖 Pengguna Android (Google Chrome)</p>
+              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
+                <li>Pastikan halaman ini dibuka di aplikasi <b>Google Chrome</b>.</li>
+                <li>Ketuk ikon <b>titik tiga (⋮)</b> di pojok kanan atas browser.</li>
+                <li>Pilih <b>Install aplikasi</b> atau <b>Tambahkan ke Layar utama</b>, lalu ketuk <b>Install</b>.</li>
+              </ol>
+            </div>
+
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
+              <p class="text-xs font-extrabold text-slate-900">🍎 Pengguna iPhone / iPad (Safari)</p>
+              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
+                <li>Buka link aplikasi ini menggunakan browser <b>Safari</b>.</li>
+                <li>Ketuk ikon <b>Share (kotak dengan panah ke atas)</b> di bagian bawah layar.</li>
+                <li>Gulir ke bawah lalu pilih <b>Add to Home Screen (Tambah ke Layar Utama)</b>.</li>
+              </ol>
+            </div>
+
+            <button onclick="closeModal()" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl">
+              Mengerti
             </button>
           </div>
         </div>
@@ -2738,116 +3055,153 @@
       renderApp();
     }
 
-    async function triggerPwaInstall() {
-      if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        if (outcome === 'accepted') {
-          deferredInstallPrompt = null;
-          dismissInstallBanner();
-          showToast('🎉 Aplikasi Cuan sedang dipasang ke HP kamu!', 'success');
+    async function checkForAppUpdates() {
+      showToast('🔄 Memeriksa pembaruan aplikasi...', 'info');
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = swRegistration || await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            await reg.update();
+            if (reg.waiting) {
+              document.getElementById('update-banner')?.classList.remove('hidden');
+              showToast('🚀 Versi baru tersedia! Klik tombol Update di atas.', 'success');
+              return;
+            }
+          }
         }
-        return;
+        showToast('✅ Aplikasi Cuan sudah menggunakan versi terbaru!', 'success');
+      } catch (err) {
+        showToast('Aplikasi sudah versi terbaru.', 'info');
       }
-
-      // Tutorial Visual Android & iOS jika browser tidak memicu prompt otomatis
-      const root = document.getElementById('modal-root');
-      root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
-          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-extrabold text-slate-900">📲 Cara Pasang Cuan di HP</h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-sm">✕</button>
-            </div>
-
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
-              <p class="text-xs font-extrabold text-brand">🤖 Pengguna Android (Google Chrome)</p>
-              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
-                <li>Pastikan link dibuka di aplikasi <b>Google Chrome</b> (bukan browser dalam WhatsApp).</li>
-                <li>Ketuk ikon <b>titik tiga (⋮)</b> di pojok kanan atas Chrome.</li>
-                <li>Pilih <b>Install aplikasi</b> atau <b>Tambahkan ke Layar Utama</b>.</li>
-              </ol>
-            </div>
-
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
-              <p class="text-xs font-extrabold text-brand">🍎 Pengguna iPhone (Safari)</p>
-              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
-                <li>Buka link aplikasi ini lewat browser <b>Safari</b>.</li>
-                <li>Ketuk ikon <b>Share (kotak panah ke atas)</b> di bagian bawah layar.</li>
-                <li>Gulir ke bawah lalu pilih <b>Add to Home Screen (Tambah ke Layar Utama)</b>.</li>
-              </ol>
-            </div>
-
-            <button onclick="closeModal()" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl">Mengerti</button>
-          </div>
-        </div>
-      `;
     }
 
     function applyAppUpdate() {
-      if (swRegistration && swRegistration.waiting) {
-        swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
+      try {
+        if (swRegistration && swRegistration.waiting) {
+          swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      } catch (_) {}
       window.location.reload();
     }
 
-    async function checkForAppUpdates() {
-      showToast('🔄 Mengecek pembaruan dari server...', 'info');
-      try {
-        if (swRegistration) {
-          await swRegistration.update();
-          if (swRegistration.waiting) {
-            document.getElementById('update-banner')?.classList.remove('hidden');
-            showToast('🚀 Versi baru ditemukan! Klik tombol Update di atas.', 'success');
-            return;
-          }
-        }
-        setTimeout(() => {
-          window.location.reload();
-        }, 600);
-      } catch (_) {
-        window.location.reload();
-      }
-    }
-
-    /**
-     * ============================================================================
-     * 14. DATA CONTOH, EKSPOR CSV, BACKUP & RESTORE JSON
-     * ============================================================================
-     */
     function loadSampleDemoData() {
-      const now = new Date();
-      const activeKey = findCycleKeyForDate(now);
-      const activeRange = getCycleRange(activeKey);
-      const prevKey = getPreviousCycleKey(activeKey);
-      const prevRange = getCycleRange(prevKey);
+      const activeCycleKey = findCycleKeyForDate(new Date());
+      const activeRange = getCycleRange(activeCycleKey);
+      const prevCycleKey = getPreviousCycleKey(activeCycleKey);
+      const prevRange = getCycleRange(prevCycleKey);
 
-      const d1 = toISODate(activeRange.startDate);
-      const d2 = toISODate(now);
-      const p1 = toISODate(prevRange.startDate);
+      const addDaysISO = (baseDate, offsetDays) => {
+        const d = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + offsetDays);
+        return toISODate(d);
+      };
 
-      appState.transactions = [
-        { id: 'tx_demo_1', type: 'income', amount: 6500000, categoryId: 'cat_gaji', date: d1, note: 'Gaji Bulanan Utama', receiptImage: '' },
-        { id: 'tx_demo_2', type: 'expense', amount: 1200000, categoryId: 'cat_tagihan', date: d1, note: 'Bayar Kos & Wi-Fi', receiptImage: '' },
-        { id: 'tx_demo_3', type: 'expense', amount: 25000, categoryId: 'cat_makan', date: d2, note: 'Es Kopi Susu Gula Aren', receiptImage: '' },
-        { id: 'tx_demo_4', type: 'expense', amount: 42000, categoryId: 'cat_makan', date: d2, note: 'Makan Siang Ayam Bakar', receiptImage: '' },
-        { id: 'tx_demo_5', type: 'expense', amount: 18000, categoryId: 'cat_transport', date: d2, note: 'Naik Ojol ke Kantor', receiptImage: '' },
-        { id: 'tx_demo_6', type: 'income', amount: 6200000, categoryId: 'cat_gaji', date: p1, note: 'Gaji Siklus Lalu', receiptImage: '' },
-        { id: 'tx_demo_7', type: 'expense', amount: 1850000, categoryId: 'cat_belanja', date: p1, note: 'Belanja Kebutuhan Bulanan', receiptImage: '' }
+      const todayISO = toISODate(new Date());
+      const startActiveISO = activeRange.startISO;
+      const startPrevISO = prevRange.startISO;
+
+      const sampleTxs = [
+        {
+          id: 'tx_demo_1_' + Date.now(),
+          type: 'income',
+          amount: 6500000,
+          categoryId: 'cat_gaji',
+          date: startActiveISO,
+          note: 'Gaji Bulanan Utama',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_2_' + Date.now(),
+          type: 'income',
+          amount: 850000,
+          categoryId: 'cat_freelance',
+          date: todayISO,
+          note: 'Project Desain & Cuan Sampingan',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_3_' + Date.now(),
+          type: 'expense',
+          amount: 1250000,
+          categoryId: 'cat_tagihan',
+          date: addDaysISO(activeRange.startDate, 1),
+          note: 'Bayar Kos & Wi-Fi Bulanan',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_4_' + Date.now(),
+          type: 'expense',
+          amount: 48000,
+          categoryId: 'cat_makan',
+          date: todayISO,
+          note: 'Kopi Susu Gula Aren & Makan Siang',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_5_' + Date.now(),
+          type: 'expense',
+          amount: 35000,
+          categoryId: 'cat_transport',
+          date: todayISO,
+          note: 'Isi Bensin Pertamax Full',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_6_' + Date.now(),
+          type: 'expense',
+          amount: 240000,
+          categoryId: 'cat_belanja',
+          date: addDaysISO(activeRange.startDate, 2),
+          note: 'Belanja Kebutuhan Harian & Skincare',
+          receiptImage: ''
+        },
+        // Data siklus lalu untuk perbandingan Vibe Check
+        {
+          id: 'tx_demo_prev_1_' + Date.now(),
+          type: 'income',
+          amount: 6500000,
+          categoryId: 'cat_gaji',
+          date: startPrevISO,
+          note: 'Gaji Siklus Sebelumnya',
+          receiptImage: ''
+        },
+        {
+          id: 'tx_demo_prev_2_' + Date.now(),
+          type: 'expense',
+          amount: 2150000,
+          categoryId: 'cat_makan',
+          date: addDaysISO(prevRange.startDate, 5),
+          note: 'Pengeluaran Makan & Nongkrong Siklus Lalu',
+          receiptImage: ''
+        }
       ];
 
-      uiState.selectedCycleKey = activeKey;
+      appState.transactions = [...sampleTxs, ...appState.transactions];
+      uiState.selectedCycleKey = activeCycleKey;
+      uiState.activeTab = 'beranda';
       saveState();
       renderApp();
-      showToast('✨ Data contoh siklus ini & siklus lalu berhasil dimuat!', 'success');
+      showToast('✨ Data simulasi berhasil dimuat ke siklus aktif & siklus lalu!', 'success');
     }
 
     function exportTransactionsCSV() {
       const metrics = getCycleMetrics(uiState.selectedCycleKey);
+      if (!metrics.txs.length) {
+        showToast('Belum ada transaksi di siklus ini untuk diunduh.', 'warning');
+        return;
+      }
+
       const rows = [['Tanggal', 'Tipe', 'Kategori', 'Catatan', 'Nominal']];
       metrics.txs.forEach((tx) => {
-        const cat = appState.categories.find((c) => c.id === tx.categoryId)?.name || 'Umum';
-        rows.push([tx.date, tx.type === 'income' ? 'Cuan Masuk' : 'Cuan Keluar', `"${cat}"`, `"${(tx.note || '').replace(/"/g, '""')}"`, tx.amount]);
+        const cat = appState.categories.find((c) => c.id === tx.categoryId);
+        const safeNote = `"${String(tx.note || '').replace(/"/g, '""')}"`;
+        const safeCat = `"${String(cat?.name || 'Umum').replace(/"/g, '""')}"`;
+        rows.push([
+          tx.date,
+          tx.type === 'income' ? 'Cuan Masuk' : 'Cuan Keluar',
+          safeCat,
+          safeNote,
+          tx.amount
+        ]);
       });
 
       const csvContent = 'data:text/csv;charset=utf-8,' + rows.map((r) => r.join(',')).join('\n');
