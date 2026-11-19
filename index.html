@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -234,8 +235,8 @@
      * 1. KONFIGURASI SUPABASE & PENGUMUMAN DEVELOPER
      *************************************************************************/
     const SUPABASE_CONFIG = {
-      url: 'https://YOUR_PROJECT_ID.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
+      url: 'https://nbzlnyrtpnfsiaeqdcrz.supabase.co',
+      anonKey: 'sb_publishable_-4i05ZsjNBvlLE02KDoPxQ_5cMdtpRE'
     };
 
     // Tambahkan pengumuman baru di urutan paling atas array ini agar muncul di lonceng notifikasi pengguna
@@ -259,7 +260,9 @@
       if (
         window.supabase &&
         SUPABASE_CONFIG.url.startsWith('https://') &&
-        !SUPABASE_CONFIG.url.includes('YOUR_PROJECT_ID')
+        !SUPABASE_CONFIG.url.includes('YOUR_PROJECT_ID') &&
+        SUPABASE_CONFIG.anonKey &&
+        !SUPABASE_CONFIG.anonKey.includes('YOUR_SUPABASE')
       ) {
         supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
           auth: {
@@ -1729,7 +1732,7 @@
             <div class="pt-3 space-y-1.5">
               <div class="flex items-center justify-between text-[11px] text-slate-400">
                 <span>Cuan — Catatan Keuangan & Siklus Gajian</span>
-                <span class="font-bold">v2.8.4</span>
+                <span class="font-bold">v2.8.6</span>
               </div>
               <div class="flex items-center justify-between text-[11px] text-slate-500">
                 <span>Developed by <strong class="font-extrabold brand-text">Hann</strong></span>
@@ -3478,3 +3481,4 @@
   </script>
 </body>
 </html>
+```
