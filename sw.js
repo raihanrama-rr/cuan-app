@@ -1,5 +1,4 @@
-```javascript
-const CACHE_NAME = 'cuan-pwa-v3.0.0';
+const CACHE_NAME = 'cuan-pwa-v3.0.2';
 const PRECACHE_URLS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -32,4 +31,3 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/')))
   );
 });
-```
