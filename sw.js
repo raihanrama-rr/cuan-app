@@ -1,4 +1,5 @@
-const CACHE_NAME = 'cuan-pwa-v2.8.4';
+```javascript
+const CACHE_NAME = 'cuan-pwa-v2.8.6';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -25,7 +26,7 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Network-First untuk halaman HTML agar pembaruan kode GitHub/Vercel langsung terbaca
+  // Network-First untuk halaman HTML agar update kode GitHub/Vercel langsung terbaca
   if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
       fetch(event.request)
@@ -43,3 +44,4 @@ self.addEventListener('fetch', (event) => {
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
+```
