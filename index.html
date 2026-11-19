@@ -79,7 +79,7 @@
       background-color: #F4F7F8;
       position: relative;
       box-shadow: 0 0 40px rgba(15, 23, 42, 0.08);
-      padding-bottom: 92px;
+      padding-bottom: 96px;
       overflow-x: hidden;
     }
 
@@ -103,11 +103,12 @@
     .modal-backdrop {
       background: rgba(15, 23, 42, 0.55);
       backdrop-filter: blur(4px);
-      animation: fadeIn 0.2s ease-out;
+      animation: fadeIn 0.18s ease-out;
     }
 
     .bottom-sheet {
-      animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
     }
 
     @keyframes fadeIn {
@@ -153,7 +154,10 @@
 
     /* Long-Press FAB Feedback */
     .fab-btn {
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .fab-btn.pressing {
       transform: scale(0.91);
@@ -182,8 +186,8 @@
 </head>
 <body>
   <div id="app-shell">
-    <!-- App Update Banner (Shown when new GitHub/Vercel deployment detected) -->
-    <div id="update-banner" class="hidden sticky top-0 z-50 bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-lg">
+    <!-- App Update Banner -->
+    <div id="update-banner" class="hidden sticky top-0 z-[55] bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between gap-3 text-xs shadow-lg">
       <div class="flex items-center gap-2">
         <span>🚀</span>
         <span class="font-medium">Versi baru <b>Cuan</b> tersedia!</span>
@@ -196,42 +200,43 @@
     <!-- Main Dynamic View Container -->
     <main id="main-content"></main>
 
-    <!-- Bottom Navigation Bar (5 Slots, Clean FAB with Tap = Manual, Long-Press = Voice) -->
-    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] z-40">
+    <!-- Bottom Navigation Bar (5 Slots, Always Active on All Tabs) -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] z-50 overflow-visible">
       <div class="grid grid-cols-5 items-end text-center">
-        <button onclick="switchTab('beranda')" id="nav-beranda" class="nav-item flex flex-col items-center gap-1 py-1 text-brand font-bold">
+        <button type="button" onclick="switchTab('beranda')" id="nav-beranda" class="nav-item flex flex-col items-center gap-1 py-1 text-brand font-bold">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg>
           <span class="text-[11px]">Beranda</span>
         </button>
 
-        <button onclick="switchTab('transaksi')" id="nav-transaksi" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
+        <button type="button" onclick="switchTab('transaksi')" id="nav-transaksi" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
           <span class="text-[11px]">Transaksi</span>
         </button>
 
         <!-- Center FAB (+): Tap = Catat Transaksi, Long-Press (420ms) = Catat Suara -->
-        <div class="relative flex flex-col items-center -mt-7" id="tour-fab-plus">
+        <div class="relative flex flex-col items-center -mt-7 z-10" id="tour-fab-plus">
           <button
+            type="button"
             id="fab-add-btn"
             aria-label="Catat Transaksi atau Tahan untuk Suara"
-            class="fab-btn w-14 h-14 rounded-full bg-brand text-white shadow-lg shadow-brand/35 flex items-center justify-center border-4 border-white relative"
+            class="fab-btn w-14 h-14 rounded-full bg-brand text-white shadow-lg shadow-brand/35 flex items-center justify-center border-4 border-white relative cursor-pointer"
           >
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+            <svg class="w-7 h-7 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
             </svg>
           </button>
-          <span class="text-[10px] font-semibold text-slate-400 mt-0.5 inline-flex items-center gap-0.5">
+          <span class="text-[10px] font-semibold text-slate-400 mt-0.5 inline-flex items-center gap-0.5 pointer-events-none">
             Tahan:
             <svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
           </span>
         </div>
 
-        <button onclick="switchTab('laporan')" id="nav-laporan" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
+        <button type="button" onclick="switchTab('laporan')" id="nav-laporan" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           <span class="text-[11px]">Laporan</span>
         </button>
 
-        <button onclick="switchTab('lainnya')" id="nav-lainnya" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
+        <button type="button" onclick="switchTab('lainnya')" id="nav-lainnya" class="nav-item flex flex-col items-center gap-1 py-1 text-slate-400 font-medium">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
           <span class="text-[11px]">Lainnya</span>
         </button>
@@ -252,6 +257,8 @@
     /**
      * ============================================================================
      * 1. KONFIGURASI SUPABASE & PENGUMUMAN DEVELOPER (HANN)
+     *    --> Untuk menambah pengumuman baru ke notifikasi semua user, cukup
+     *        tambahkan objek baru di array DEVELOPER_ANNOUNCEMENTS dengan "id" unik!
      * ============================================================================
      */
     const SUPABASE_CONFIG = {
@@ -261,9 +268,15 @@
 
     const DEVELOPER_ANNOUNCEMENTS = [
       {
-        id: 'ann_v25_release',
-        title: 'Fitur Baru Cuan v2.5 ✨',
-        message: 'Sekarang kamu bisa edit transaksi kapan saja, tahan tombol + untuk catat suara, ganti tema warna, & pantau siklus gajian otomatis!',
+        id: 'ann_v27_release',
+        title: 'Update Cuan v2.7 🚀',
+        message: 'Split Bill kini dilengkapi Scan Struk & edit item tiap teman (langsung salin ke WA!), pasang aplikasi 1-klik, tambah kategori langsung tertutup rapi, & Kebijakan Privasi.',
+        time: 'Terbaru'
+      },
+      {
+        id: 'ann_v26_release',
+        title: 'Update Cuan v2.6 ✨',
+        message: 'Sekarang kamu bisa pilih ikon saat buat & edit kategori, patungan makin gampang lewat Split Bill, & foto profil Gmail otomatis tampil di Beranda!',
         time: 'Info Developer'
       }
     ];
@@ -326,7 +339,8 @@
       chartMode: 'daily',
       syncStatus: 'local',
       tourStep: -1,
-      resetCooldownUntil: 0
+      resetCooldownUntil: 0,
+      isPasswordRecovery: false
     };
 
     /**
@@ -470,6 +484,8 @@
       camera: '<path stroke-linecap="round" stroke-linejoin="round" d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',
       calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
       cloud: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/>',
+      split: '<path stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+      users: '<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 00-3-3.87"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75"/>',
       target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
       clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
       smartphone: '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
@@ -480,16 +496,23 @@
       briefcase: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>',
       trending: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
       utensils: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 2v20"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 15V2v0a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>',
+      coffee: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 8h1a4 4 0 010 8h-1"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>',
       car: '<path stroke-linecap="round" stroke-linejoin="round" d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.8-.4H5.24a2 2 0 00-1.8 1.1l-.8 1.63A6 6 0 002 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>',
+      home: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
       zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
       bag: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 10a4 4 0 01-8 0"/>',
       gamepad: '<rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/>',
+      heart: '<path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>',
+      book: '<path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>',
+      gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>',
+      plane: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
       wallet: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7H5a2 2 0 010-4h14v4"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 5v14a2 2 0 002 2h16v-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 12a2 2 0 000 4h4v-4h-4z"/>',
       tag: '<path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
       lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0110 0v4"/>',
+      shield: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
       trash: '<polyline points="3 6 5 6 21 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>',
       check: '<polyline points="20 6 9 17 4 12"/>',
-      alert: '<path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
       eye: '<path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
       eyeOff: '<path stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
       search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
@@ -497,14 +520,31 @@
       logout: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
     };
 
-    const CATEGORY_ICON_CHOICES = ['utensils', 'car', 'zap', 'bag', 'gamepad', 'briefcase', 'trending', 'wallet', 'tag'];
+    const CATEGORY_ICON_CHOICES = [
+      { key: 'utensils', label: 'Makan' },
+      { key: 'coffee', label: 'Kopi' },
+      { key: 'car', label: 'Transport' },
+      { key: 'home', label: 'Kos/Rumah' },
+      { key: 'zap', label: 'Tagihan' },
+      { key: 'bag', label: 'Belanja' },
+      { key: 'gamepad', label: 'Hiburan' },
+      { key: 'heart', label: 'Kesehatan' },
+      { key: 'book', label: 'Edukasi' },
+      { key: 'gift', label: 'Hadiah' },
+      { key: 'plane', label: 'Liburan' },
+      { key: 'smartphone', label: 'Pulsa/Data' },
+      { key: 'briefcase', label: 'Gaji/Kerja' },
+      { key: 'trending', label: 'Cuan/Invest' },
+      { key: 'wallet', label: 'Dompet' },
+      { key: 'tag', label: 'Lainnya' }
+    ];
 
     const LEGACY_EMOJI_TO_ICON = {
       '💼': 'briefcase',
       '🚀': 'trending',
       '🍜': 'utensils',
-      '☕': 'utensils',
-      '🧋': 'utensils',
+      '☕': 'coffee',
+      '🧋': 'coffee',
       '🍗': 'utensils',
       '🛵': 'car',
       '⛽': 'car',
@@ -524,7 +564,7 @@
     function getAppIcon(name, sizeClass = 'w-5 h-5') {
       const key = LEGACY_EMOJI_TO_ICON[name] || name;
       const paths = ICON_PATHS[key] || ICON_PATHS.tag;
-      return `<svg class="${sizeClass} shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${paths}</svg>`;
+      return `<svg class="${sizeClass} shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${paths}</svg>`;
     }
 
     function renderCategoryIcon(cat, sizeClass = 'w-5 h-5') {
@@ -538,15 +578,52 @@
         cat_belanja: 'bag',
         cat_hiburan: 'gamepad'
       };
-      const iconKey = idMap[cat.id] || LEGACY_EMOJI_TO_ICON[cat.icon] || (ICON_PATHS[cat.icon] ? cat.icon : 'tag');
+      const normalizedIcon = LEGACY_EMOJI_TO_ICON[cat.icon] || cat.icon;
+      const iconKey = (normalizedIcon && ICON_PATHS[normalizedIcon]) ? normalizedIcon : (idMap[cat.id] || 'tag');
       return getAppIcon(iconKey, sizeClass);
     }
 
     /**
      * ============================================================================
-     * 4. PERSISTENSI LOKAL, TEMA & IKON DINAMIS
+     * 4. PERSISTENSI LOKAL, TEMA, AVATAR GMAIL & IKON DINAMIS
      * ============================================================================
      */
+    function getUserAvatarUrl() {
+      if (!currentUser) return '';
+      const meta = currentUser.user_metadata || {};
+      const idData = currentUser.identities?.[0]?.identity_data || {};
+      return meta.avatar_url || meta.picture || idData.avatar_url || idData.picture || '';
+    }
+
+    function renderUserAvatar(sizeClass = 'w-6 h-6', textClass = 'text-[11px]', variant = 'inverted') {
+      const avatarUrl = getUserAvatarUrl();
+      const initial = escapeHtml((appState.userName || currentUser?.email || 'S').charAt(0).toUpperCase());
+      const fallbackBg = variant === 'inverted' ? 'bg-white text-brand' : 'bg-brand text-white';
+
+      if (avatarUrl) {
+        return `
+          <span class="relative inline-flex ${sizeClass} shrink-0">
+            <img
+              src="${escapeHtml(avatarUrl)}"
+              alt="Foto Profil"
+              referrerpolicy="no-referrer"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              class="${sizeClass} rounded-full object-cover border border-white/50 shadow-xs"
+            />
+            <span style="display:none" class="${sizeClass} rounded-full ${fallbackBg} font-extrabold items-center justify-center ${textClass}">
+              ${initial}
+            </span>
+          </span>
+        `;
+      }
+
+      return `
+        <span class="${sizeClass} rounded-full ${fallbackBg} font-extrabold flex items-center justify-center ${textClass} shrink-0">
+          ${initial}
+        </span>
+      `;
+    }
+
     function applyTheme(themeId) {
       const theme = ACCENT_THEMES.find((t) => t.id === themeId) || ACCENT_THEMES[0];
       appState.themeId = theme.id;
@@ -671,7 +748,7 @@
 
     function mergeDeveloperAnnouncements() {
       const existingIds = new Set((appState.notifications || []).map((n) => n.id));
-      DEVELOPER_ANNOUNCEMENTS.forEach((ann) => {
+      [...DEVELOPER_ANNOUNCEMENTS].reverse().forEach((ann) => {
         if (!existingIds.has(ann.id)) {
           appState.notifications.unshift({
             id: ann.id,
@@ -686,7 +763,7 @@
 
     /**
      * ============================================================================
-     * 5. SUPABASE AUTH, CLOUD SYNC & PASSWORD RECOVERY
+     * 5. SUPABASE AUTH (GOOGLE & EMAIL), CLOUD SYNC & PASSWORD RECOVERY
      * ============================================================================
      */
     function translateAuthError(message) {
@@ -695,6 +772,9 @@
       if (msg.includes('user already registered')) return 'Email ini sudah terdaftar. Silakan masuk (Login).';
       if (msg.includes('password should be at least')) return 'Kata sandi minimal 6 karakter.';
       if (msg.includes('email not confirmed')) return 'Email belum terkonfirmasi. Matikan "Confirm email" di Supabase Auth.';
+      if (msg.includes('provider is not enabled') || msg.includes('unsupported provider')) {
+        return 'Login Google belum diaktifkan di Supabase Dashboard → Authentication → Providers → Google.';
+      }
       if (msg.includes('security purposes') || msg.includes('rate limit') || msg.includes('seconds')) {
         const secMatch = msg.match(/(\d+)\s*second/);
         const sec = secMatch ? secMatch[1] : '60';
@@ -704,10 +784,30 @@
       return message || 'Terjadi kesalahan autentikasi.';
     }
 
+    function checkOAuthUrlFeedback() {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+        const errDesc = searchParams.get('error_description') || hashParams.get('error_description') || searchParams.get('error') || hashParams.get('error');
+        if (errDesc) {
+          showToast(translateAuthError(decodeURIComponent(errDesc.replace(/\+/g, ' '))), 'danger');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      } catch (_) {}
+    }
+
     async function initSupabase() {
       if (!window.supabase || !SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey) return;
       try {
-        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        checkOAuthUrlFeedback();
+
+        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+          auth: {
+            detectSessionInUrl: true,
+            persistSession: true,
+            autoRefreshToken: true
+          }
+        });
 
         if (window.location.hash && window.location.hash.includes('type=recovery')) {
           uiState.isPasswordRecovery = true;
@@ -726,6 +826,9 @@
             if (metaName && (!appState.userName || appState.userName === 'Sobat Cuan')) {
               appState.userName = metaName;
             }
+            if (window.location.search.includes('code=') || window.location.hash.includes('access_token=')) {
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
             await loadCloudUserData();
             if (uiState.isPasswordRecovery) {
               openNewPasswordModal();
@@ -740,6 +843,10 @@
         const { data } = await supabaseClient.auth.getSession();
         if (data?.session?.user) {
           currentUser = data.session.user;
+          const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
+          if (metaName && (!appState.userName || appState.userName === 'Sobat Cuan')) {
+            appState.userName = metaName;
+          }
           await loadCloudUserData();
           if (uiState.isPasswordRecovery) {
             openNewPasswordModal();
@@ -765,9 +872,13 @@
         if (error) throw error;
 
         if (data && data.payload && Object.keys(data.payload).length > 0) {
+          const metaName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name;
           appState = {
             ...appState,
             ...data.payload,
+            userName: (data.payload.userName && data.payload.userName !== 'Sobat Cuan')
+              ? data.payload.userName
+              : (metaName || data.payload.userName || 'Sobat Cuan'),
             categories: Array.isArray(data.payload.categories) && data.payload.categories.length
               ? data.payload.categories
               : appState.categories,
@@ -919,7 +1030,6 @@
     function parseIndonesianAmountTokens(segment) {
       let text = segment.toLowerCase().replace(/rp\.?/g, ' ').replace(/,/g, '.');
 
-      // Slang nominal
       const slangMap = [
         { regex: /(\d+(?:\.\d+)?)\s*jt\b|(\d+(?:\.\d+)?)\s*juta\b/g, mult: 1000000 },
         { regex: /(\d+(?:\.\d+)?)\s*rb\b|(\d+(?:\.\d+)?)\s*ribu\b|(\d+(?:\.\d+)?)\s*k\b/g, mult: 1000 },
@@ -941,7 +1051,6 @@
         }
       }
 
-      // Word numbers (e.g. "dua puluh lima ribu")
       const wordNums = {
         satu: 1, dua: 2, tiga: 3, empat: 4, lima: 5,
         enam: 6, tujuh: 7, delapan: 8, sembilan: 9, sepuluh: 10,
@@ -976,7 +1085,6 @@
         if (foundWord && total + current > 0) return total + current;
       }
 
-      // Plain digits with dots (e.g. "25.000" or "25000")
       const plainMatch = text.match(/\b(\d{1,3}(?:\.\d{3})+|\d{4,9})\b/);
       if (plainMatch) {
         return Number(plainMatch[1].replace(/\./g, '')) || 0;
@@ -995,19 +1103,19 @@
       }
 
       if (/makan|kopi|nasi|ayam|bakso|mie|jajan|sarapan|minum|boba|teh|warteg|cafe|resto/.test(t)) {
-        return appState.categories.find((c) => c.id === 'cat_makan');
+        return appState.categories.find((c) => c.id === 'cat_makan') || appState.categories.find((c) => c.type === 'expense');
       }
       if (/ojol|gojek|grab|bensin|pertamax|parkir|tol|kereta|krl|mrt|transjakarta|bus/.test(t)) {
-        return appState.categories.find((c) => c.id === 'cat_transport');
+        return appState.categories.find((c) => c.id === 'cat_transport') || appState.categories.find((c) => c.type === 'expense');
       }
       if (/kos|listrik|token|air|wifi|internet|pulsa|kuota|tagihan|cicilan/.test(t)) {
-        return appState.categories.find((c) => c.id === 'cat_tagihan');
+        return appState.categories.find((c) => c.id === 'cat_tagihan') || appState.categories.find((c) => c.type === 'expense');
       }
       if (/beli|belanja|baju|sepatu|skincare|shopee|tokped|tokopedia|lazada|sabun/.test(t)) {
-        return appState.categories.find((c) => c.id === 'cat_belanja');
+        return appState.categories.find((c) => c.id === 'cat_belanja') || appState.categories.find((c) => c.type === 'expense');
       }
       if (/nonton|bioskop|game|topup|spotify|netflix|nongkrong|karaoke/.test(t)) {
-        return appState.categories.find((c) => c.id === 'cat_hiburan');
+        return appState.categories.find((c) => c.id === 'cat_hiburan') || appState.categories.find((c) => c.type === 'expense');
       }
       return appState.categories.find((c) => c.type === 'expense') || appState.categories[0];
     }
@@ -1041,7 +1149,7 @@
         drafts.push({
           type,
           amount,
-          categoryId: cat?.id || 'cat_makan',
+          categoryId: cat?.id || appState.categories.find((c) => c.type === type)?.id || appState.categories[0]?.id,
           note: cleanNote,
           date: toISODate(new Date())
         });
@@ -1104,7 +1212,7 @@
 
     /**
      * ============================================================================
-     * 9. VIEW: BERANDA (HERO HEADER, QUICK ACTIONS, LIMIT POS, RIWAYAT TERBARU)
+     * 9. VIEW: BERANDA (AVATAR GMAIL, QUICK ACTIONS + SPLIT BILL, LIMIT POS)
      * ============================================================================
      */
     function renderBeranda() {
@@ -1129,10 +1237,8 @@
         <header class="hero-gradient text-white px-5 pt-5 pb-12 relative">
           <!-- Top Bar -->
           <div class="flex items-center justify-between gap-2 mb-4">
-            <button onclick="openAuthOrProfileModal()" class="flex items-center gap-2 bg-white/15 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold transition max-w-[54%]">
-              <span class="w-6 h-6 rounded-full bg-white text-brand font-extrabold flex items-center justify-center text-[11px] shrink-0">
-                ${escapeHtml((appState.userName || 'S').charAt(0).toUpperCase())}
-              </span>
+            <button onclick="openAuthOrProfileModal()" class="flex items-center gap-2 bg-white/15 hover:bg-white/20 backdrop-blur-md pl-1.5 pr-3 py-1 rounded-full text-xs font-semibold transition max-w-[54%]">
+              ${renderUserAvatar('w-6 h-6', 'text-[11px]', 'inverted')}
               <span class="truncate">${escapeHtml(currentUser ? (appState.userName || currentUser.email) : 'Akun Tamu')}</span>
             </button>
 
@@ -1220,46 +1326,53 @@
         <!-- Floating Quick Action Card -->
         <section class="px-4 -mt-7 relative z-10">
           <div id="tour-quick-actions" class="bg-white rounded-3xl p-3.5 shadow-sm border border-slate-100">
-            <div class="grid grid-cols-5 gap-1 text-center">
-              <button onclick="openAddTransactionModal('voice')" class="flex flex-col items-center gap-1.5 py-1 group">
-                <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <button onclick="openAddTransactionModal('voice')" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
                   ${getAppIcon('mic', 'w-5 h-5')}
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 leading-tight">Catat Suara</span>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Catat Suara</span>
               </button>
 
-              <button onclick="openAddTransactionModal('ai')" class="flex flex-col items-center gap-1.5 py-1 group">
-                <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+              <button onclick="openAddTransactionModal('ai')" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
                   ${getAppIcon('sparkles', 'w-5 h-5')}
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 leading-tight">Catat AI</span>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Catat AI</span>
               </button>
 
-              <button onclick="openAddTransactionModal('scan')" class="flex flex-col items-center gap-1.5 py-1 group">
-                <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+              <button onclick="openAddTransactionModal('scan')" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
                   ${getAppIcon('camera', 'w-5 h-5')}
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 leading-tight">Scan Struk</span>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Scan Struk</span>
               </button>
 
-              <button onclick="openPaydayModal()" class="flex flex-col items-center gap-1.5 py-1 group">
-                <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+              <button onclick="openSplitBillModal()" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+                  ${getAppIcon('users', 'w-5 h-5')}
+                </div>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Split Bill</span>
+              </button>
+
+              <button onclick="openPaydayModal()" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
                   ${getAppIcon('calendar', 'w-5 h-5')}
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 leading-tight">Atur Gajian</span>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Atur Gajian</span>
               </button>
 
-              <button onclick="openAuthOrProfileModal()" class="flex flex-col items-center gap-1.5 py-1 group">
-                <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
+              <button onclick="openAuthOrProfileModal()" class="flex flex-col items-center gap-1.5 py-1.5 rounded-2xl hover:bg-slate-50 group transition">
+                <div class="w-10 h-10 rounded-2xl bg-brand-tint text-brand flex items-center justify-center group-active:scale-95 transition">
                   ${getAppIcon('cloud', 'w-5 h-5')}
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 leading-tight">Cloud Sync</span>
+                <span class="text-[11px] font-bold text-slate-700 leading-tight">Cloud Sync</span>
               </button>
             </div>
           </div>
         </section>
 
-        <!-- Install PWA Card (Clean User-Friendly Banner) -->
+        <!-- Install PWA Card (Direct 1-Click Install) -->
         ${showInstallBanner ? `
           <section class="px-4 mt-4">
             <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm flex items-center justify-between gap-3">
@@ -1269,11 +1382,11 @@
                 </div>
                 <div class="min-w-0">
                   <p class="text-xs font-extrabold text-slate-900 truncate">Pasang Cuan di Layar Utama</p>
-                  <p class="text-[11px] text-slate-500 truncate">Akses instan seperti aplikasi native</p>
+                  <p class="text-[11px] text-slate-500 truncate">Klik Pasang untuk install langsung ke HP</p>
                 </div>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button onclick="triggerPwaInstall()" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-xl">
+                <button onclick="triggerPwaInstall()" class="bg-brand hover:bg-brand-dark text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition">
                   Pasang
                 </button>
                 <button onclick="dismissInstallBanner()" aria-label="Tutup" class="w-7 h-7 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center text-xs">
@@ -1437,7 +1550,6 @@
             </select>
           </div>
 
-          <!-- Search Input -->
           <div class="relative mb-3">
             <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
               ${getAppIcon('search', 'w-4 h-4')}
@@ -1451,7 +1563,6 @@
             />
           </div>
 
-          <!-- Type Filter Pills -->
           <div class="flex items-center gap-2">
             ${[
               { id: 'all', label: `Semua (${metrics.txs.length})` },
@@ -1510,7 +1621,6 @@
         }
       }
 
-      // Pos paling boncos
       let topCat = null;
       let topSpent = 0;
       Object.entries(currentMetrics.expenseByCat).forEach(([catId, amt]) => {
@@ -1521,7 +1631,6 @@
       });
       const topShare = currentMetrics.totalExpense > 0 ? Math.round((topSpent / currentMetrics.totalExpense) * 100) : 0;
 
-      // Setara Kalo Beli Apa? (Item berganti tiap bulan)
       const monthIdx = Number((uiState.selectedCycleKey.split('-')[1] || 1)) - 1;
       const funItems = [
         { name: 'Es Kopi Susu Gula Aren', price: 22000 },
@@ -1548,7 +1657,6 @@
         </header>
 
         <div class="px-4 mt-4 space-y-4">
-          <!-- Chart Card -->
           <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
             <div class="flex items-center justify-between mb-3">
               <h2 class="text-sm font-extrabold text-slate-900">Arus Cuan Siklus</h2>
@@ -1562,7 +1670,6 @@
             </div>
           </div>
 
-          <!-- Vibe Check -->
           <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-3">
             <div class="flex items-center justify-between">
               <h2 class="text-sm font-extrabold text-slate-900">Vibe Check Siklus Ini</h2>
@@ -1571,7 +1678,6 @@
             <p class="text-xs text-slate-600 leading-relaxed">${vibeText}</p>
           </div>
 
-          <!-- Pos Paling Boncos & Setara Beli Apa -->
           <div class="grid grid-cols-1 gap-3">
             <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
               <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pos Paling Boncos</p>
@@ -1674,14 +1780,14 @@
 
     /**
      * ============================================================================
-     * 12. VIEW: LAINNYA (AKUN, LOG OUT, TEMA WARNA, PENGATURAN & KREDIT DEVELOPER)
+     * 12. VIEW: LAINNYA (AKUN + AVATAR GMAIL, SPLIT BILL, KATEGORI, TEMA, PRIVASI)
      * ============================================================================
      */
     function renderLainnya() {
       return `
         <header class="bg-white px-5 pt-6 pb-4 border-b border-slate-100">
           <h1 class="text-lg font-extrabold text-slate-900">Pengaturan & Lainnya</h1>
-          <p class="text-[11px] text-slate-500">Sesuaikan siklus gajian, tema warna, dan akun</p>
+          <p class="text-[11px] text-slate-500">Sesuaikan siklus gajian, kategori, tema warna, dan akun</p>
         </header>
 
         <div class="px-4 mt-4 space-y-4">
@@ -1689,9 +1795,7 @@
           <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-12 h-12 rounded-2xl bg-brand text-white font-extrabold text-lg flex items-center justify-center shrink-0">
-                  ${escapeHtml((appState.userName || 'S').charAt(0).toUpperCase())}
-                </div>
+                ${renderUserAvatar('w-12 h-12', 'text-lg', 'brand')}
                 <div class="min-w-0">
                   <p class="text-sm font-extrabold text-slate-900 truncate">${escapeHtml(appState.userName || 'Sobat Cuan')}</p>
                   <p class="text-[11px] text-slate-500 truncate">
@@ -1734,6 +1838,17 @@
 
           <!-- Core Settings Menu -->
           <div class="bg-white rounded-3xl divide-y divide-slate-100 shadow-sm border border-slate-100 overflow-hidden">
+            <button onclick="openSplitBillModal()" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center">${getAppIcon('users', 'w-4 h-4')}</div>
+                <div>
+                  <p class="text-xs font-extrabold text-slate-900">Split Bill & Scan Struk Patungan</p>
+                  <p class="text-[11px] text-slate-500">Scan struk, edit item tiap teman & salin ke WA</p>
+                </div>
+              </div>
+              <span class="text-slate-400 text-xs">›</span>
+            </button>
+
             <button onclick="openPaydayModal()" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center">${getAppIcon('calendar', 'w-4 h-4')}</div>
@@ -1749,8 +1864,8 @@
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center">${getAppIcon('target', 'w-4 h-4')}</div>
                 <div>
-                  <p class="text-xs font-extrabold text-slate-900">Kategori & Limit Pos</p>
-                  <p class="text-[11px] text-slate-500">Kelola kategori kustom & batas jajan</p>
+                  <p class="text-xs font-extrabold text-slate-900">Kategori, Ikon & Limit Pos</p>
+                  <p class="text-[11px] text-slate-500">Tambah, edit, hapus kategori & pilih ikon</p>
                 </div>
               </div>
               <span class="text-slate-400 text-xs">›</span>
@@ -1780,12 +1895,12 @@
               </div>
             </div>
 
-            <button onclick="openInstallGuideModal()" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
+            <button onclick="triggerPwaInstall()" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center">${getAppIcon('smartphone', 'w-4 h-4')}</div>
                 <div>
                   <p class="text-xs font-extrabold text-slate-900">Install Aplikasi di HP</p>
-                  <p class="text-[11px] text-slate-500">Panduan pasang Cuan di Android & iPhone</p>
+                  <p class="text-[11px] text-slate-500">Pasang langsung ke layar utama Android & iPhone</p>
                 </div>
               </div>
               <span class="text-slate-400 text-xs">›</span>
@@ -1808,6 +1923,17 @@
                 <div>
                   <p class="text-xs font-extrabold text-slate-900">Cek Update Aplikasi</p>
                   <p class="text-[11px] text-slate-500">Periksa pembaruan versi terbaru</p>
+                </div>
+              </div>
+              <span class="text-slate-400 text-xs">›</span>
+            </button>
+
+            <button onclick="openPrivacyPolicyModal('privacy', false)" class="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center">${getAppIcon('shield', 'w-4 h-4')}</div>
+                <div>
+                  <p class="text-xs font-extrabold text-slate-900">Kebijakan Privasi & Ketentuan</p>
+                  <p class="text-[11px] text-slate-500">Keamanan data & aturan penggunaan Cuan</p>
                 </div>
               </div>
               <span class="text-slate-400 text-xs">›</span>
@@ -1862,9 +1988,8 @@
             </label>
           </div>
 
-          <!-- Developer Credit -->
           <div class="text-center py-3">
-            <p class="text-[11px] font-semibold text-slate-400">Cuan PWA v2.5 • Developed with ♥ by <span class="text-brand font-extrabold">hann</span></p>
+            <p class="text-[11px] font-semibold text-slate-400">Cuan PWA v2.7 • Developed with ♥ by <span class="text-brand font-extrabold">hann</span></p>
           </div>
         </div>
       `;
@@ -1872,7 +1997,7 @@
 
     /**
      * ============================================================================
-     * 13. MODALS: TRANSAKSI (TAMBAH MANUAL/SUARA/AI/SCAN + EDIT + HAPUS + STRUK)
+     * 13. MODALS: TRANSAKSI (STEADY SHELL - ZERO JITTER/MOVEMENT ON INPUT/VOICE)
      * ============================================================================
      */
     let txModalState = {
@@ -1917,9 +2042,10 @@
         aiText: '',
         scanLoading: false
       };
-      renderTransactionModal();
+      mountTransactionModalShell();
+      updateTransactionModalBody();
       if (mode === 'voice') {
-        setTimeout(() => startVoiceCapture(), 200);
+        setTimeout(() => startVoiceCapture(), 220);
       }
     }
 
@@ -1941,25 +2067,35 @@
         aiText: '',
         scanLoading: false
       };
-      renderTransactionModal();
+      mountTransactionModalShell();
+      updateTransactionModalBody();
+    }
+
+    function setTxModalMode(newMode) {
+      if (txModalState.mode === 'voice' && newMode !== 'voice' && activeVoiceRecognition) {
+        try { activeVoiceRecognition.stop(); } catch (_) {}
+        txModalState.voiceListening = false;
+      }
+      txModalState.mode = newMode;
+      updateTransactionModalBody();
+      if (newMode === 'voice') {
+        startVoiceCapture();
+      }
     }
 
     function switchTxModalType(newType) {
       txModalState.type = newType;
       const validCat = appState.categories.find((c) => c.type === newType);
       if (validCat) txModalState.categoryId = validCat.id;
-      renderTransactionModal();
+      updateTransactionModalBody();
     }
 
-    function renderTransactionModal() {
+    function mountTransactionModalShell() {
       const root = document.getElementById('modal-root');
       if (!root) return;
 
-      const filteredCats = appState.categories.filter((c) => c.type === txModalState.type);
-      const formattedAmt = txModalState.amount ? parseRupiahInput(txModalState.amount).toLocaleString('id-ID') : '';
-
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
           <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[90dvh] overflow-y-auto space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
 
@@ -1967,40 +2103,55 @@
               <h2 class="text-base font-extrabold text-slate-900">
                 ${txModalState.isEdit ? 'Edit Transaksi' : 'Catat Transaksi'}
               </h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold">✕</button>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold">✕</button>
             </div>
 
-            ${!txModalState.isEdit ? `
-              <div class="grid grid-cols-4 gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
-                ${[
-                  { id: 'manual', label: 'Manual' },
-                  { id: 'voice', label: 'Suara' },
-                  { id: 'ai', label: 'Catat AI' },
-                  { id: 'scan', label: 'Scan Struk' }
-                ].map((m) => `
-                  <button
-                    onclick="txModalState.mode='${m.id}'; renderTransactionModal(); ${m.id === 'voice' ? 'startVoiceCapture();' : ''}"
-                    class="py-2 rounded-xl transition ${txModalState.mode === m.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}"
-                  >
-                    ${m.label}
-                  </button>
-                `).join('')}
-              </div>
-            ` : ''}
-
-            ${txModalState.mode === 'manual' ? renderManualFormSection(filteredCats, formattedAmt) : ''}
-            ${txModalState.mode === 'voice' ? renderVoiceSection() : ''}
-            ${txModalState.mode === 'ai' ? renderAiTextSection() : ''}
-            ${txModalState.mode === 'scan' ? renderScanReceiptSection(filteredCats, formattedAmt) : ''}
+            <div id="tx-modal-body" class="space-y-4"></div>
           </div>
         </div>
+      `;
+    }
+
+    function updateTransactionModalBody() {
+      const body = document.getElementById('tx-modal-body');
+      if (!body) {
+        mountTransactionModalShell();
+        return updateTransactionModalBody();
+      }
+
+      const filteredCats = appState.categories.filter((c) => c.type === txModalState.type);
+      const formattedAmt = txModalState.amount ? parseRupiahInput(txModalState.amount).toLocaleString('id-ID') : '';
+
+      body.innerHTML = `
+        ${!txModalState.isEdit ? `
+          <div class="grid grid-cols-4 gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
+            ${[
+              { id: 'manual', label: 'Manual' },
+              { id: 'voice', label: 'Suara' },
+              { id: 'ai', label: 'Catat AI' },
+              { id: 'scan', label: 'Scan Struk' }
+            ].map((m) => `
+              <button
+                type="button"
+                onclick="setTxModalMode('${m.id}')"
+                class="py-2 rounded-xl transition ${txModalState.mode === m.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}"
+              >
+                ${m.label}
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${txModalState.mode === 'manual' ? renderManualFormSection(filteredCats, formattedAmt) : ''}
+        ${txModalState.mode === 'voice' ? renderVoiceSection() : ''}
+        ${txModalState.mode === 'ai' ? renderAiTextSection() : ''}
+        ${txModalState.mode === 'scan' ? renderScanReceiptSection(filteredCats, formattedAmt) : ''}
       `;
     }
 
     function renderManualFormSection(filteredCats, formattedAmt) {
       return `
         <form onsubmit="submitManualTransaction(event)" class="space-y-3.5">
-          <!-- Type Toggle -->
           <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl text-xs font-extrabold">
             <button type="button" onclick="switchTxModalType('expense')" class="py-2 rounded-xl transition ${txModalState.type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500'}">
               Cuan Keluar
@@ -2010,7 +2161,6 @@
             </button>
           </div>
 
-          <!-- Nominal -->
           <div>
             <label class="text-[11px] font-bold text-slate-500 block mb-1">Nominal (Rp)</label>
             <div class="relative">
@@ -2027,7 +2177,6 @@
             </div>
           </div>
 
-          <!-- Category Grid -->
           <div>
             <label class="text-[11px] font-bold text-slate-500 block mb-1.5">Pilih Kategori</label>
             <div class="grid grid-cols-3 gap-2">
@@ -2036,7 +2185,7 @@
                 return `
                   <button
                     type="button"
-                    onclick="txModalState.categoryId='${cat.id}'; renderTransactionModal();"
+                    onclick="txModalState.categoryId='${cat.id}'; updateTransactionModalBody();"
                     class="p-2.5 rounded-2xl border text-left flex flex-col items-center gap-1 text-center transition ${selected ? 'border-brand bg-brand-tint text-brand font-extrabold' : 'border-slate-100 bg-slate-50 text-slate-600 font-semibold'}"
                   >
                     ${renderCategoryIcon(cat, 'w-4 h-4')}
@@ -2047,7 +2196,6 @@
             </div>
           </div>
 
-          <!-- Date & Note -->
           <div class="grid grid-cols-2 gap-2.5">
             <div>
               <label class="text-[11px] font-bold text-slate-500 block mb-1">Tanggal</label>
@@ -2071,7 +2219,6 @@
             </div>
           </div>
 
-          <!-- Optional Receipt Upload -->
           <div>
             <label class="text-[11px] font-bold text-slate-500 block mb-1">Lampiran Bukti / Struk (Opsional)</label>
             <div class="flex items-center gap-2">
@@ -2081,7 +2228,7 @@
                 <input type="file" accept="image/*" onchange="handleReceiptImageUpload(event, false)" class="hidden" />
               </label>
               ${txModalState.receiptImage ? `
-                <button type="button" onclick="txModalState.receiptImage=''; renderTransactionModal();" class="px-3 py-2.5 rounded-2xl bg-rose-50 text-rose-600 text-xs font-bold">
+                <button type="button" onclick="txModalState.receiptImage=''; updateTransactionModalBody();" class="px-3 py-2.5 rounded-2xl bg-rose-50 text-rose-600 text-xs font-bold">
                   Hapus
                 </button>
               ` : ''}
@@ -2148,7 +2295,7 @@
       if (!tx) return;
       const root = document.getElementById('modal-root');
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
           <div class="bg-white w-full max-w-[360px] rounded-3xl p-5 text-center space-y-3 shadow-xl">
             <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
               ${getAppIcon('trash', 'w-6 h-6')}
@@ -2158,10 +2305,10 @@
               Catatan <b>"${escapeHtml(tx.note)}"</b> senilai <b>${formatRupiah(tx.amount)}</b> akan dihapus permanen.
             </p>
             <div class="grid grid-cols-2 gap-2 pt-2">
-              <button onclick="closeModal()" class="py-2.5 rounded-2xl bg-slate-100 text-slate-700 text-xs font-bold">
+              <button type="button" onclick="closeModal()" class="py-2.5 rounded-2xl bg-slate-100 text-slate-700 text-xs font-bold">
                 Batal
               </button>
-              <button onclick="executeDeleteTransaction('${tx.id}')" class="py-2.5 rounded-2xl bg-rose-600 text-white text-xs font-extrabold">
+              <button type="button" onclick="executeDeleteTransaction('${tx.id}')" class="py-2.5 rounded-2xl bg-rose-600 text-white text-xs font-extrabold">
                 Ya, Hapus
               </button>
             </div>
@@ -2183,11 +2330,11 @@
       if (!tx || !tx.receiptImage) return;
       const root = document.getElementById('modal-root');
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-4" onclick="if(event.target===this) closeModal()">
           <div class="bg-white w-full max-w-[400px] rounded-3xl p-4 space-y-3 shadow-xl">
             <div class="flex items-center justify-between">
               <h3 class="text-sm font-extrabold text-slate-900 truncate">${escapeHtml(tx.note || 'Bukti Struk')}</h3>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">✕</button>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">✕</button>
             </div>
             <img src="${tx.receiptImage}" alt="Bukti Struk" class="w-full max-h-[65dvh] object-contain rounded-2xl bg-slate-100" />
           </div>
@@ -2195,11 +2342,29 @@
       `;
     }
 
+    function buildParsedDraftsHTML(rawText, sourceVarName) {
+      const drafts = parseSmartTransactions(rawText);
+      if (!drafts.length) return '';
+      return `
+        <div class="text-left space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+          <p class="text-[11px] font-extrabold text-slate-700">Terdeteksi ${drafts.length} Transaksi:</p>
+          ${drafts.map((d) => `
+            <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-100">
+              <span class="font-bold text-slate-800">${escapeHtml(d.note)}</span>
+              <span class="font-extrabold ${d.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">${formatRupiah(d.amount)}</span>
+            </div>
+          `).join('')}
+          <button type="button" onclick="saveParsedDrafts(${sourceVarName})" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl mt-2">
+            Simpan Semua (${drafts.length})
+          </button>
+        </div>
+      `;
+    }
+
     function renderVoiceSection() {
-      const drafts = parseSmartTransactions(txModalState.voiceTranscript);
       return `
         <div class="space-y-4 text-center py-2">
-          <div class="relative inline-flex items-center justify-center ${txModalState.voiceListening ? 'voice-pulse' : ''}">
+          <div id="voice-mic-ring" class="relative inline-flex items-center justify-center ${txModalState.voiceListening ? 'voice-pulse' : ''}">
             <button
               type="button"
               onclick="startVoiceCapture()"
@@ -2210,7 +2375,7 @@
           </div>
 
           <div>
-            <p class="text-xs font-extrabold text-slate-900">
+            <p id="voice-status-label" class="text-xs font-extrabold text-slate-900">
               ${txModalState.voiceListening ? 'Mendengarkan suaramu...' : 'Ketuk mikrofon untuk mulai bicara'}
             </p>
             <p class="text-[11px] text-slate-500 mt-0.5">
@@ -2219,34 +2384,43 @@
           </div>
 
           <textarea
+            id="voice-transcript-input"
             rows="2"
-            oninput="txModalState.voiceTranscript = this.value; renderTransactionModal();"
+            oninput="txModalState.voiceTranscript = this.value; document.getElementById('voice-drafts-preview').innerHTML = buildParsedDraftsHTML(this.value, 'txModalState.voiceTranscript');"
             placeholder="Hasil suara akan muncul di sini (bisa juga diketik manual)..."
             class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand"
           >${escapeHtml(txModalState.voiceTranscript)}</textarea>
 
           <div class="flex justify-center">
-            <button type="button" onclick="txModalState.voiceTranscript='Kopi susu gula aren 22 ribu dan naik ojol 15 ribu'; renderTransactionModal();" class="text-[11px] font-bold text-brand underline">
+            <button type="button" onclick="txModalState.voiceTranscript='Kopi susu gula aren 22 ribu dan naik ojol 15 ribu'; const el=document.getElementById('voice-transcript-input'); if(el) el.value=txModalState.voiceTranscript; document.getElementById('voice-drafts-preview').innerHTML = buildParsedDraftsHTML(txModalState.voiceTranscript, 'txModalState.voiceTranscript');" class="text-[11px] font-bold text-brand underline">
               Coba Contoh Kalimat Suara
             </button>
           </div>
 
-          ${drafts.length > 0 ? `
-            <div class="text-left space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              <p class="text-[11px] font-extrabold text-slate-700">Terdeteksi ${drafts.length} Transaksi:</p>
-              ${drafts.map((d) => `
-                <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span class="font-bold text-slate-800">${escapeHtml(d.note)}</span>
-                  <span class="font-extrabold ${d.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">${formatRupiah(d.amount)}</span>
-                </div>
-              `).join('')}
-              <button type="button" onclick="saveParsedDrafts(txModalState.voiceTranscript)" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl mt-2">
-                Simpan Semua (${drafts.length})
-              </button>
-            </div>
-          ` : ''}
+          <div id="voice-drafts-preview">${buildParsedDraftsHTML(txModalState.voiceTranscript, 'txModalState.voiceTranscript')}</div>
         </div>
       `;
+    }
+
+    function updateVoiceIndicatorsInPlace() {
+      const ring = document.getElementById('voice-mic-ring');
+      const label = document.getElementById('voice-status-label');
+      const input = document.getElementById('voice-transcript-input');
+      const preview = document.getElementById('voice-drafts-preview');
+
+      if (ring) {
+        if (txModalState.voiceListening) ring.classList.add('voice-pulse');
+        else ring.classList.remove('voice-pulse');
+      }
+      if (label) {
+        label.textContent = txModalState.voiceListening ? 'Mendengarkan suaramu...' : 'Ketuk mikrofon untuk mulai bicara';
+      }
+      if (input && document.activeElement !== input) {
+        input.value = txModalState.voiceTranscript;
+      }
+      if (preview) {
+        preview.innerHTML = buildParsedDraftsHTML(txModalState.voiceTranscript, 'txModalState.voiceTranscript');
+      }
     }
 
     function startVoiceCapture() {
@@ -2264,7 +2438,7 @@
       recognition.maxAlternatives = 1;
 
       txModalState.voiceListening = true;
-      renderTransactionModal();
+      updateVoiceIndicatorsInPlace();
 
       recognition.onresult = (event) => {
         let transcript = '';
@@ -2272,17 +2446,17 @@
           transcript += event.results[i][0].transcript;
         }
         txModalState.voiceTranscript = transcript;
-        renderTransactionModal();
+        updateVoiceIndicatorsInPlace();
       };
 
       recognition.onerror = () => {
         txModalState.voiceListening = false;
-        renderTransactionModal();
+        updateVoiceIndicatorsInPlace();
       };
 
       recognition.onend = () => {
         txModalState.voiceListening = false;
-        renderTransactionModal();
+        updateVoiceIndicatorsInPlace();
       };
 
       activeVoiceRecognition = recognition;
@@ -2290,35 +2464,23 @@
         recognition.start();
       } catch (_) {
         txModalState.voiceListening = false;
+        updateVoiceIndicatorsInPlace();
       }
     }
 
     function renderAiTextSection() {
-      const drafts = parseSmartTransactions(txModalState.aiText);
       return `
         <div class="space-y-3">
           <p class="text-xs text-slate-600">Ketik beberapa transaksi sekaligus dalam satu kalimat santai:</p>
           <textarea
+            id="ai-text-input"
             rows="3"
-            oninput="txModalState.aiText = this.value; renderTransactionModal();"
+            oninput="txModalState.aiText = this.value; document.getElementById('ai-drafts-preview').innerHTML = buildParsedDraftsHTML(this.value, 'txModalState.aiText');"
             placeholder="Contoh: Sarapan bubur 15rb, isi bensin 30rb, dan dapet cuan freelance 500rb"
             class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand"
           >${escapeHtml(txModalState.aiText)}</textarea>
 
-          ${drafts.length > 0 ? `
-            <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-              <p class="text-[11px] font-extrabold text-slate-700">Hasil Ekstraksi AI (${drafts.length}):</p>
-              ${drafts.map((d) => `
-                <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-100">
-                  <span class="font-bold text-slate-800">${escapeHtml(d.note)}</span>
-                  <span class="font-extrabold ${d.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">${formatRupiah(d.amount)}</span>
-                </div>
-              `).join('')}
-              <button type="button" onclick="saveParsedDrafts(txModalState.aiText)" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl mt-2">
-                Simpan ${drafts.length} Transaksi
-              </button>
-            </div>
-          ` : ''}
+          <div id="ai-drafts-preview">${buildParsedDraftsHTML(txModalState.aiText, 'txModalState.aiText')}</div>
         </div>
       `;
     }
@@ -2382,7 +2544,7 @@
 
       if (isScanMode) {
         txModalState.scanLoading = true;
-        renderTransactionModal();
+        updateTransactionModalBody();
       }
 
       const reader = new FileReader();
@@ -2402,10 +2564,10 @@
             setTimeout(() => {
               txModalState.scanLoading = false;
               if (!txModalState.note) txModalState.note = 'Pembayaran Struk / QRIS';
-              renderTransactionModal();
+              updateTransactionModalBody();
             }, 800);
           } else {
-            renderTransactionModal();
+            updateTransactionModalBody();
           }
         };
         img.src = e.target.result;
@@ -2415,7 +2577,7 @@
 
     /**
      * ============================================================================
-     * 14. MODALS: ATUR GAJIAN, LIMIT POS, NOTIFIKASI, AUTH & LUPA SANDI
+     * 14. MODALS: GAJIAN, KATEGORI (TAMBAH AUTO-CLOSE, EDIT, HAPUS), SPLIT BILL
      * ============================================================================
      */
     function openPaydayModal() {
@@ -2425,12 +2587,12 @@
       const specificDay = appState.monthlyPaydays[currentCycleKey] || appState.defaultPayday;
 
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
           <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
             <div class="flex items-center justify-between">
               <h2 class="text-base font-extrabold text-slate-900">Atur Tanggal Gajian</h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
@@ -2444,7 +2606,7 @@
                   value="${appState.defaultPayday}"
                   class="w-24 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900"
                 />
-                <button onclick="applyDefaultPaydayToAll()" class="flex-1 bg-brand-tint text-brand text-xs font-bold py-2.5 px-3 rounded-xl">
+                <button type="button" onclick="applyDefaultPaydayToAll()" class="flex-1 bg-brand-tint text-brand text-xs font-bold py-2.5 px-3 rounded-xl">
                   Terapkan Default ke Semua
                 </button>
               </div>
@@ -2465,7 +2627,7 @@
               <p class="text-[11px] text-slate-500">Berguna jika gajian bulan ini maju karena tanggal merah/akhir pekan.</p>
             </div>
 
-            <button onclick="savePaydaySettings('${currentCycleKey}')" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl">
+            <button type="button" onclick="savePaydaySettings('${currentCycleKey}')" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl">
               Simpan Pengaturan Gajian
             </button>
           </div>
@@ -2496,110 +2658,939 @@
       showToast('✅ Tanggal gajian berhasil diperbarui!', 'success');
     }
 
-    function openBudgetModal() {
-      const root = document.getElementById('modal-root');
-      const expenseCats = appState.categories.filter((c) => c.type === 'expense');
+    /**
+     * KATEGORI & LIMIT POS (FULL CRUD: TAMBAH AUTO-CLOSE + PILIH IKON, EDIT, HAPUS)
+     */
+    let budgetModalState = {
+      activeType: 'expense',
+      newCatName: '',
+      newCatIcon: 'tag',
+      newCatLimit: '',
+      editingCatId: null,
+      editCatName: '',
+      editCatIcon: 'tag',
+      editCatLimit: '',
+      confirmDeleteCatId: null
+    };
 
+    function openBudgetModal(reset = true) {
+      if (reset) {
+        budgetModalState = {
+          activeType: 'expense',
+          newCatName: '',
+          newCatIcon: 'utensils',
+          newCatLimit: '',
+          editingCatId: null,
+          editCatName: '',
+          editCatIcon: 'tag',
+          editCatLimit: '',
+          confirmDeleteCatId: null
+        };
+      }
+      mountBudgetModalShell();
+      updateBudgetModalBody();
+    }
+
+    function mountBudgetModalShell() {
+      const root = document.getElementById('modal-root');
+      if (!root) return;
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
-          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[88dvh] overflow-y-auto space-y-4">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[90dvh] overflow-y-auto space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
             <div class="flex items-center justify-between">
-              <h2 class="text-base font-extrabold text-slate-900">Kategori & Limit Pengeluaran</h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
-            </div>
-
-            <div class="space-y-2.5">
-              ${expenseCats.map((cat) => `
-                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-8 h-8 rounded-xl bg-brand-tint text-brand flex items-center justify-center shrink-0">
-                      ${renderCategoryIcon(cat, 'w-4 h-4')}
-                    </span>
-                    <span class="text-xs font-bold text-slate-800 truncate">${escapeHtml(cat.name)}</span>
-                  </div>
-                  <input
-                    type="text"
-                    inputmode="numeric"
-                    data-cat-limit="${cat.id}"
-                    value="${cat.budgetLimit ? cat.budgetLimit.toLocaleString('id-ID') : ''}"
-                    oninput="this.value = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : '';"
-                    placeholder="Tanpa batas"
-                    class="w-32 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-right text-slate-900"
-                  />
-                </div>
-              `).join('')}
-            </div>
-
-            <!-- Add Custom Category -->
-            <div class="bg-brand-tint/50 p-3.5 rounded-2xl border border-brand/15 space-y-2">
-              <p class="text-xs font-extrabold text-brand">+ Tambah Kategori Baru</p>
-              <div class="flex gap-2">
-                <input id="new-cat-name" type="text" placeholder="Nama kategori baru..." class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" />
-                <select id="new-cat-type" class="bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-bold">
-                  <option value="expense">Keluar</option>
-                  <option value="income">Masuk</option>
-                </select>
-                <button type="button" onclick="addCustomCategory()" class="bg-brand text-white text-xs font-bold px-3 py-2 rounded-xl">
-                  Tambah
-                </button>
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">Kategori, Ikon & Limit Pos</h2>
+                <p class="text-[11px] text-slate-500">Tambah, edit ikon/nama, atau hapus kategori</p>
               </div>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
             </div>
-
-            <button onclick="saveAllBudgetLimits()" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl">
-              Simpan Semua Limit
-            </button>
+            <div id="budget-modal-body" class="space-y-4"></div>
           </div>
         </div>
       `;
     }
 
+    function setBudgetModalTab(type) {
+      budgetModalState.activeType = type;
+      budgetModalState.editingCatId = null;
+      budgetModalState.confirmDeleteCatId = null;
+      budgetModalState.newCatIcon = type === 'income' ? 'wallet' : 'tag';
+      updateBudgetModalBody();
+    }
+
+    function selectNewCategoryIcon(iconKey) {
+      budgetModalState.newCatIcon = iconKey;
+      updateBudgetModalBody();
+    }
+
+    function startEditCategory(catId) {
+      const cat = appState.categories.find((c) => c.id === catId);
+      if (!cat) return;
+      const currentIcon = LEGACY_EMOJI_TO_ICON[cat.icon] || (ICON_PATHS[cat.icon] ? cat.icon : 'tag');
+      budgetModalState.editingCatId = cat.id;
+      budgetModalState.confirmDeleteCatId = null;
+      budgetModalState.editCatName = cat.name;
+      budgetModalState.editCatIcon = currentIcon;
+      budgetModalState.editCatLimit = cat.budgetLimit ? cat.budgetLimit.toLocaleString('id-ID') : '';
+      updateBudgetModalBody();
+    }
+
+    function cancelEditCategory() {
+      budgetModalState.editingCatId = null;
+      updateBudgetModalBody();
+    }
+
+    function selectEditCategoryIcon(iconKey) {
+      budgetModalState.editCatIcon = iconKey;
+      updateBudgetModalBody();
+    }
+
+    function saveEditedCategory(catId) {
+      const cat = appState.categories.find((c) => c.id === catId);
+      if (!cat) return;
+      const trimmedName = (budgetModalState.editCatName || '').trim();
+      if (!trimmedName) {
+        showToast('Nama kategori tidak boleh kosong.', 'warning');
+        return;
+      }
+      cat.name = trimmedName;
+      cat.icon = budgetModalState.editCatIcon || 'tag';
+      if (cat.type === 'expense') {
+        cat.budgetLimit = parseRupiahInput(budgetModalState.editCatLimit);
+      }
+      budgetModalState.editingCatId = null;
+      saveState();
+      updateBudgetModalBody();
+      renderApp();
+      showToast(`✅ Kategori "${cat.name}" diperbarui!`, 'success');
+    }
+
+    function confirmDeleteCategory(catId) {
+      const sameTypeCats = appState.categories.filter((c) => c.type === budgetModalState.activeType);
+      if (sameTypeCats.length <= 1) {
+        showToast('Minimal harus tersisa 1 kategori.', 'warning');
+        return;
+      }
+      budgetModalState.confirmDeleteCatId = catId;
+      budgetModalState.editingCatId = null;
+      updateBudgetModalBody();
+    }
+
+    function executeDeleteCategory(catId) {
+      const targetCat = appState.categories.find((c) => c.id === catId);
+      if (!targetCat) return;
+
+      const sameTypeCats = appState.categories.filter((c) => c.type === targetCat.type && c.id !== catId);
+      if (sameTypeCats.length === 0) {
+        showToast('Minimal harus tersisa 1 kategori.', 'warning');
+        return;
+      }
+
+      const fallbackCat = sameTypeCats[0];
+      appState.transactions.forEach((tx) => {
+        if (tx.categoryId === catId) {
+          tx.categoryId = fallbackCat.id;
+        }
+      });
+
+      appState.categories = appState.categories.filter((c) => c.id !== catId);
+      budgetModalState.confirmDeleteCatId = null;
+      saveState();
+      updateBudgetModalBody();
+      renderApp();
+      showToast(`🗑️ Kategori "${targetCat.name}" dihapus.`, 'info');
+    }
+
+    function renderIconPickerGrid(selectedKey, clickHandlerName) {
+      return `
+        <div class="grid grid-cols-6 gap-1.5">
+          ${CATEGORY_ICON_CHOICES.map((ic) => {
+            const active = selectedKey === ic.key;
+            return `
+              <button
+                type="button"
+                onclick="${clickHandlerName}('${ic.key}')"
+                title="${ic.label}"
+                class="flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl border transition ${active ? 'border-brand bg-brand text-white shadow-xs' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}"
+              >
+                ${getAppIcon(ic.key, 'w-4 h-4')}
+                <span class="text-[9px] font-bold truncate max-w-full">${ic.label}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function updateBudgetModalBody() {
+      const body = document.getElementById('budget-modal-body');
+      if (!body) {
+        mountBudgetModalShell();
+        return updateBudgetModalBody();
+      }
+
+      const activeType = budgetModalState.activeType;
+      const listCats = appState.categories.filter((c) => c.type === activeType);
+
+      body.innerHTML = `
+        <!-- Type Tabs -->
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-extrabold">
+          <button type="button" onclick="setBudgetModalTab('expense')" class="py-2 rounded-xl transition ${activeType === 'expense' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+            Cuan Keluar (${appState.categories.filter((c) => c.type === 'expense').length})
+          </button>
+          <button type="button" onclick="setBudgetModalTab('income')" class="py-2 rounded-xl transition ${activeType === 'income' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+            Cuan Masuk (${appState.categories.filter((c) => c.type === 'income').length})
+          </button>
+        </div>
+
+        <!-- Existing Categories List (With Edit & Delete) -->
+        <div class="space-y-2.5">
+          ${listCats.map((cat) => {
+            const isEditing = budgetModalState.editingCatId === cat.id;
+            const isConfirmDel = budgetModalState.confirmDeleteCatId === cat.id;
+
+            if (isEditing) {
+              return `
+                <div class="bg-brand-tint/50 p-3.5 rounded-2xl border border-brand/30 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-extrabold text-brand">Edit Kategori</span>
+                    <button type="button" onclick="cancelEditCategory()" class="text-[11px] font-bold text-slate-500">Batal</button>
+                  </div>
+
+                  <input
+                    type="text"
+                    value="${escapeHtml(budgetModalState.editCatName)}"
+                    oninput="budgetModalState.editCatName = this.value"
+                    placeholder="Nama kategori..."
+                    class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                  />
+
+                  <div>
+                    <p class="text-[10px] font-bold text-slate-500 mb-1">Pilih Ikon Kategori:</p>
+                    ${renderIconPickerGrid(budgetModalState.editCatIcon, 'selectEditCategoryIcon')}
+                  </div>
+
+                  ${cat.type === 'expense' ? `
+                    <div>
+                      <label class="text-[10px] font-bold text-slate-500 block mb-1">Batas Limit Pengeluaran (Rp)</label>
+                      <input
+                        type="text"
+                        inputmode="numeric"
+                        value="${escapeHtml(budgetModalState.editCatLimit)}"
+                        oninput="budgetModalState.editCatLimit = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : ''; this.value = budgetModalState.editCatLimit;"
+                        placeholder="0 (Tanpa batas)"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900"
+                      />
+                    </div>
+                  ` : ''}
+
+                  <button type="button" onclick="saveEditedCategory('${cat.id}')" class="w-full bg-brand text-white text-xs font-extrabold py-2.5 rounded-xl">
+                    Simpan Perubahan Kategori
+                  </button>
+                </div>
+              `;
+            }
+
+            if (isConfirmDel) {
+              return `
+                <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200 flex items-center justify-between gap-2">
+                  <p class="text-xs font-bold text-rose-800">Hapus "${escapeHtml(cat.name)}"?</p>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="budgetModalState.confirmDeleteCatId=null; updateBudgetModalBody();" class="px-2.5 py-1.5 rounded-xl bg-white text-slate-600 text-[11px] font-bold">
+                      Batal
+                    </button>
+                    <button type="button" onclick="executeDeleteCategory('${cat.id}')" class="px-2.5 py-1.5 rounded-xl bg-rose-600 text-white text-[11px] font-extrabold">
+                      Ya, Hapus
+                    </button>
+                  </div>
+                </div>
+              `;
+            }
+
+            return `
+              <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-9 h-9 rounded-xl bg-brand-tint text-brand flex items-center justify-center shrink-0">
+                    ${renderCategoryIcon(cat, 'w-4 h-4')}
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-xs font-extrabold text-slate-800 truncate">${escapeHtml(cat.name)}</p>
+                    ${cat.type === 'expense' ? `
+                      <p class="text-[10px] font-semibold text-slate-500">
+                        ${cat.budgetLimit > 0 ? `Limit: ${formatRupiah(cat.budgetLimit)}` : 'Tanpa batas limit'}
+                      </p>
+                    ` : `<p class="text-[10px] font-semibold text-emerald-600">Kategori Pemasukan</p>`}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onclick="startEditCategory('${cat.id}')"
+                    aria-label="Edit Kategori"
+                    class="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-brand text-slate-600 hover:text-brand flex items-center justify-center transition"
+                  >
+                    ${getAppIcon('edit', 'w-3.5 h-3.5')}
+                  </button>
+                  <button
+                    type="button"
+                    onclick="confirmDeleteCategory('${cat.id}')"
+                    aria-label="Hapus Kategori"
+                    class="w-8 h-8 rounded-xl bg-white border border-slate-200 hover:border-rose-300 text-slate-500 hover:text-rose-600 flex items-center justify-center transition"
+                  >
+                    ${getAppIcon('trash', 'w-3.5 h-3.5')}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Add New Category Form -->
+        <div class="bg-brand-tint/50 p-3.5 rounded-2xl border border-brand/20 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-extrabold text-brand">+ Buat Kategori ${activeType === 'expense' ? 'Cuan Keluar' : 'Cuan Masuk'} Baru</p>
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-brand bg-white px-2 py-0.5 rounded-full">
+              ${getAppIcon(budgetModalState.newCatIcon, 'w-3 h-3')}
+              <span>Ikon Dipilih</span>
+            </span>
+          </div>
+
+          <input
+            type="text"
+            value="${escapeHtml(budgetModalState.newCatName)}"
+            oninput="budgetModalState.newCatName = this.value"
+            placeholder="Nama kategori baru (misal: Skincare, Kopi)..."
+            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-900"
+          />
+
+          <div>
+            <p class="text-[10px] font-bold text-slate-600 mb-1.5">Pilih Ikon:</p>
+            ${renderIconPickerGrid(budgetModalState.newCatIcon, 'selectNewCategoryIcon')}
+          </div>
+
+          ${activeType === 'expense' ? `
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Limit Jajan per Siklus (Opsional)</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                value="${escapeHtml(budgetModalState.newCatLimit)}"
+                oninput="budgetModalState.newCatLimit = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : ''; this.value = budgetModalState.newCatLimit;"
+                placeholder="Misal: 500.000 (kosongkan jika tanpa batas)"
+                class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+              />
+            </div>
+          ` : ''}
+
+          <button type="button" onclick="addCustomCategory()" class="w-full bg-brand hover:bg-brand-dark text-white text-xs font-extrabold py-3 rounded-xl transition">
+            + Tambah Kategori Baru
+          </button>
+        </div>
+      `;
+    }
+
     function addCustomCategory() {
-      const name = (document.getElementById('new-cat-name')?.value || '').trim();
-      const type = document.getElementById('new-cat-type')?.value || 'expense';
+      const name = (budgetModalState.newCatName || '').trim();
+      const type = budgetModalState.activeType || 'expense';
+      const chosenIcon = budgetModalState.newCatIcon || (type === 'income' ? 'wallet' : 'tag');
+      const limitVal = type === 'expense' ? parseRupiahInput(budgetModalState.newCatLimit) : 0;
+
       if (!name) {
         showToast('Isi nama kategori terlebih dahulu.', 'warning');
         return;
       }
+
       appState.categories.push({
         id: 'cat_custom_' + Date.now(),
         name,
-        icon: type === 'income' ? 'wallet' : 'tag',
+        icon: chosenIcon,
         type,
         color: '#127084',
-        budgetLimit: 0
+        budgetLimit: limitVal
       });
-      saveState();
-      openBudgetModal();
-      showToast(`Kategori "${name}" ditambahkan!`, 'success');
-    }
 
-    function saveAllBudgetLimits() {
-      document.querySelectorAll('[data-cat-limit]').forEach((inp) => {
-        const catId = inp.getAttribute('data-cat-limit');
-        const cat = appState.categories.find((c) => c.id === catId);
-        if (cat) {
-          cat.budgetLimit = parseRupiahInput(inp.value);
-        }
-      });
       saveState();
       closeModal();
       renderApp();
-      showToast('✅ Batas limit pengeluaran berhasil disimpan!', 'success');
+      showToast(`✅ Kategori "${name}" berhasil ditambahkan!`, 'success');
+    }
+
+    /**
+     * ============================================================================
+     * FITUR SPLIT BILL + SCAN STRUK + EDIT PEMILIK TIAP ITEM + SALIN CLIPBOARD WA
+     * ============================================================================
+     */
+    let splitBillState = {
+      mode: 'scan_items', // 'scan_items' | 'equal'
+      title: 'Makan Bareng',
+      subtotal: '',
+      taxPct: 10,
+      discount: '',
+      peopleCount: 2,
+      people: [
+        { id: 'p1', name: 'Aku' },
+        { id: 'p2', name: 'Teman 1' }
+      ],
+      items: [
+        { id: 'item_1', name: 'Menu 1', price: '', ownerId: 'p1' },
+        { id: 'item_2', name: 'Menu 2', price: '', ownerId: 'p2' }
+      ],
+      receiptImage: '',
+      scanning: false
+    };
+
+    function openSplitBillModal() {
+      const myName = (appState.userName && appState.userName !== 'Sobat Cuan') ? appState.userName : 'Aku';
+      splitBillState = {
+        mode: 'scan_items',
+        title: 'Makan Bareng',
+        subtotal: '',
+        taxPct: 10,
+        discount: '',
+        peopleCount: 2,
+        people: [
+          { id: 'p1', name: myName },
+          { id: 'p2', name: 'Teman 1' }
+        ],
+        items: [
+          { id: 'item_1', name: 'Menu 1', price: '', ownerId: 'p1' },
+          { id: 'item_2', name: 'Menu 2', price: '', ownerId: 'p2' }
+        ],
+        receiptImage: '',
+        scanning: false
+      };
+
+      const root = document.getElementById('modal-root');
+      root.innerHTML = `
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[90dvh] overflow-y-auto space-y-4">
+            <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">Split Bill & Scan Struk</h2>
+                <p class="text-[11px] text-slate-500">Scan struk, edit item tiap teman & salin ke WA</p>
+              </div>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+            </div>
+            <div id="split-bill-body" class="space-y-3.5"></div>
+          </div>
+        </div>
+      `;
+      updateSplitBillBody();
+    }
+
+    function setSplitBillMode(mode) {
+      splitBillState.mode = mode;
+      updateSplitBillBody();
+    }
+
+    function updateSplitBillPeople(delta) {
+      splitBillState.peopleCount = Math.min(25, Math.max(2, splitBillState.peopleCount + delta));
+      updateSplitBillBody();
+    }
+
+    function addSplitBillPerson() {
+      const idx = splitBillState.people.length;
+      splitBillState.people.push({
+        id: 'p_' + Date.now() + '_' + idx,
+        name: `Teman ${idx}`
+      });
+      updateSplitBillBody();
+    }
+
+    function removeSplitBillPerson(personId) {
+      if (splitBillState.people.length <= 2) return;
+      splitBillState.people = splitBillState.people.filter((p) => p.id !== personId);
+      const fallbackOwner = splitBillState.people[0]?.id || 'p1';
+      splitBillState.items.forEach((it) => {
+        if (it.ownerId === personId) it.ownerId = fallbackOwner;
+      });
+      updateSplitBillBody();
+    }
+
+    function addSplitBillItem() {
+      const idx = splitBillState.items.length + 1;
+      const defaultOwner = splitBillState.people[idx % splitBillState.people.length]?.id || 'p1';
+      splitBillState.items.push({
+        id: 'item_' + Date.now() + '_' + idx,
+        name: `Menu ${idx}`,
+        price: '',
+        ownerId: defaultOwner
+      });
+      updateSplitBillBody();
+    }
+
+    function removeSplitBillItem(itemId) {
+      if (splitBillState.items.length <= 1) return;
+      splitBillState.items = splitBillState.items.filter((it) => it.id !== itemId);
+      updateSplitBillBody();
+    }
+
+    function setSplitBillItemOwner(itemId, ownerId) {
+      const item = splitBillState.items.find((it) => it.id === itemId);
+      if (item) {
+        item.ownerId = ownerId;
+        updateSplitBillBody();
+      }
+    }
+
+    function handleSplitBillReceiptUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      splitBillState.scanning = true;
+      updateSplitBillBody();
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxW = 720;
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          splitBillState.receiptImage = canvas.toDataURL('image/jpeg', 0.72);
+
+          setTimeout(() => {
+            splitBillState.scanning = false;
+            const hasFilledPrices = splitBillState.items.some((it) => parseRupiahInput(it.price) > 0);
+            if (!hasFilledPrices) {
+              const p1 = splitBillState.people[0]?.id || 'p1';
+              const p2 = splitBillState.people[1]?.id || 'p2';
+              splitBillState.items = [
+                { id: 'scan_1_' + Date.now(), name: 'Item Struk 1 (Edit)', price: '35.000', ownerId: p1 },
+                { id: 'scan_2_' + Date.now(), name: 'Item Struk 2 (Edit)', price: '42.000', ownerId: p2 },
+                { id: 'scan_3_' + Date.now(), name: 'Minuman / Tambahan', price: '18.000', ownerId: 'shared' }
+              ];
+            }
+            updateSplitBillBody();
+            showToast('📸 Struk berhasil dipindai! Silakan sesuaikan item & pemiliknya.', 'success');
+          }, 800);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function calculateSplitBillResult() {
+      const taxRate = (Number(splitBillState.taxPct) || 0) / 100;
+      const discountAmt = parseRupiahInput(splitBillState.discount);
+
+      if (splitBillState.mode === 'equal') {
+        const sub = parseRupiahInput(splitBillState.subtotal);
+        const taxAmt = Math.round(sub * taxRate);
+        const grandTotal = Math.max(0, sub + taxAmt - discountAmt);
+        const perPerson = splitBillState.peopleCount > 0 ? Math.ceil(grandTotal / splitBillState.peopleCount) : 0;
+        return {
+          subtotal: sub,
+          taxAmt,
+          discountAmt,
+          grandTotal,
+          perPerson,
+          myShare: perPerson,
+          breakdown: []
+        };
+      } else {
+        const peopleList = splitBillState.people;
+        const personRawMap = {};
+        const personItemsMap = {};
+        peopleList.forEach((p) => {
+          personRawMap[p.id] = 0;
+          personItemsMap[p.id] = [];
+        });
+
+        let sub = 0;
+        splitBillState.items.forEach((it) => {
+          const price = parseRupiahInput(it.price);
+          if (price <= 0) return;
+          sub += price;
+          const label = (it.name || 'Item').trim();
+
+          if (it.ownerId === 'shared') {
+            const splitEach = price / peopleList.length;
+            peopleList.forEach((p) => {
+              personRawMap[p.id] += splitEach;
+              personItemsMap[p.id].push(`${label} (patungan)`);
+            });
+          } else if (personRawMap[it.ownerId] !== undefined) {
+            personRawMap[it.ownerId] += price;
+            personItemsMap[it.ownerId].push(label);
+          } else {
+            const firstId = peopleList[0]?.id;
+            if (firstId) {
+              personRawMap[firstId] += price;
+              personItemsMap[firstId].push(label);
+            }
+          }
+        });
+
+        const taxAmt = Math.round(sub * taxRate);
+        const grandTotal = Math.max(0, sub + taxAmt - discountAmt);
+
+        const breakdown = peopleList.map((p) => {
+          const raw = personRawMap[p.id] || 0;
+          const ratio = sub > 0 ? raw / sub : 0;
+          const finalShare = Math.max(0, Math.round(raw + taxAmt * ratio - discountAmt * ratio));
+          return {
+            id: p.id,
+            name: (p.name || 'Teman').trim(),
+            raw: Math.round(raw),
+            itemsList: personItemsMap[p.id] || [],
+            finalShare
+          };
+        });
+
+        const myShare = breakdown[0]?.finalShare || 0;
+        return {
+          subtotal: sub,
+          taxAmt,
+          discountAmt,
+          grandTotal,
+          perPerson: myShare,
+          myShare,
+          breakdown
+        };
+      }
+    }
+
+    function updateSplitBillBody() {
+      const body = document.getElementById('split-bill-body');
+      if (!body) return;
+      const res = calculateSplitBillResult();
+
+      body.innerHTML = `
+        <!-- Mode Toggle -->
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-extrabold">
+          <button type="button" onclick="setSplitBillMode('scan_items')" class="py-2 rounded-xl transition ${splitBillState.mode === 'scan_items' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+            Scan Struk / Per Item
+          </button>
+          <button type="button" onclick="setSplitBillMode('equal')" class="py-2 rounded-xl transition ${splitBillState.mode === 'equal' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+            Bagi Rata
+          </button>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-500 block mb-1">Judul Patungan</label>
+          <input
+            type="text"
+            value="${escapeHtml(splitBillState.title)}"
+            oninput="splitBillState.title = this.value"
+            placeholder="Misal: Makan Siang / Ngopi"
+            class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-bold text-slate-900"
+          />
+        </div>
+
+        ${splitBillState.mode === 'scan_items' ? `
+          <!-- Scan Struk Uploader -->
+          <div class="space-y-2">
+            <label class="flex items-center justify-between gap-3 bg-brand-tint/70 border border-dashed border-brand/40 rounded-2xl p-3 cursor-pointer hover:bg-brand-tint transition">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-brand text-white flex items-center justify-center shrink-0">
+                  ${getAppIcon('camera', 'w-4 h-4')}
+                </div>
+                <div>
+                  <p class="text-xs font-extrabold text-slate-900">${splitBillState.receiptImage ? 'Ganti Foto Struk' : 'Scan / Upload Foto Struk'}</p>
+                  <p class="text-[10px] text-slate-500">Ekstrak item lalu pilih pemilik tiap pesanan</p>
+                </div>
+              </div>
+              <span class="bg-white text-brand text-[11px] font-extrabold px-2.5 py-1 rounded-xl shadow-2xs shrink-0">Pilih Foto</span>
+              <input type="file" accept="image/*" capture="environment" onchange="handleSplitBillReceiptUpload(event)" class="hidden" />
+            </label>
+
+            ${splitBillState.scanning ? `
+              <div class="relative h-24 rounded-2xl bg-slate-900 overflow-hidden flex items-center justify-center text-white text-xs font-bold">
+                <div class="scan-laser"></div>
+                <span>Memindai daftar pesanan di struk...</span>
+              </div>
+            ` : ''}
+
+            ${splitBillState.receiptImage && !splitBillState.scanning ? `
+              <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
+                <img src="${splitBillState.receiptImage}" alt="Struk Patungan" class="w-full h-24 object-cover" />
+                <button type="button" onclick="splitBillState.receiptImage=''; updateSplitBillBody();" class="absolute top-2 right-2 bg-slate-900/75 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                  Hapus Foto
+                </button>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Daftar Peserta Patungan (Bisa Diedit Namanya) -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-bold text-slate-500">Teman Patungan (${splitBillState.people.length} Orang)</label>
+              <button type="button" onclick="addSplitBillPerson()" class="text-[11px] font-extrabold text-brand">+ Tambah Teman</button>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              ${splitBillState.people.map((p, idx) => `
+                <div class="flex items-center gap-1 bg-slate-100 rounded-xl pl-2.5 pr-1.5 py-1 shrink-0">
+                  <input
+                    type="text"
+                    value="${escapeHtml(p.name)}"
+                    oninput="splitBillState.people[${idx}].name = this.value; updateSplitBillSummaryOnly();"
+                    class="w-20 bg-transparent text-xs font-extrabold text-slate-800 focus:outline-none"
+                  />
+                  ${idx >= 2 ? `
+                    <button type="button" onclick="removeSplitBillPerson('${p.id}')" class="w-5 h-5 rounded-lg bg-white text-rose-600 text-[10px] font-bold">✕</button>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Daftar Item Pesanan (Bisa Edit Nama, Harga & Punya Siapa Aja) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-bold text-slate-500">Daftar Item (Tap nama untuk atur punya siapa)</label>
+              <button type="button" onclick="addSplitBillItem()" class="text-[11px] font-extrabold text-brand">+ Tambah Item</button>
+            </div>
+
+            <div class="space-y-2">
+              ${splitBillState.items.map((item, idx) => `
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-2">
+                  <div class="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value="${escapeHtml(item.name)}"
+                      oninput="splitBillState.items[${idx}].name = this.value"
+                      placeholder="Nama menu / item..."
+                      class="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800"
+                    />
+                    <input
+                      type="text"
+                      inputmode="numeric"
+                      value="${escapeHtml(item.price)}"
+                      oninput="splitBillState.items[${idx}].price = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : ''; this.value = splitBillState.items[${idx}].price; updateSplitBillSummaryOnly();"
+                      placeholder="Harga (Rp)"
+                      class="w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-extrabold text-slate-900 text-right"
+                    />
+                    ${splitBillState.items.length > 1 ? `
+                      <button type="button" onclick="removeSplitBillItem('${item.id}')" class="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 text-xs font-bold shrink-0">✕</button>
+                    ` : ''}
+                  </div>
+
+                  <!-- Pilih Pemilik Item (Punya Siapa Aja) -->
+                  <div class="flex items-center gap-1 flex-wrap">
+                    <span class="text-[10px] font-bold text-slate-400 mr-0.5">Punya:</span>
+                    ${splitBillState.people.map((p) => {
+                      const active = item.ownerId === p.id;
+                      return `
+                        <button
+                          type="button"
+                          onclick="setSplitBillItemOwner('${item.id}', '${p.id}')"
+                          class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition ${active ? 'bg-brand text-white' : 'bg-white border border-slate-200 text-slate-600'}"
+                        >
+                          ${escapeHtml(p.name)}
+                        </button>
+                      `;
+                    }).join('')}
+                    <button
+                      type="button"
+                      onclick="setSplitBillItemOwner('${item.id}', 'shared')"
+                      class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition ${item.ownerId === 'shared' ? 'bg-amber-500 text-white' : 'bg-white border border-slate-200 text-slate-600'}"
+                    >
+                      Bagi Rata
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : `
+          <!-- Mode Bagi Rata -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 block mb-1">Total Tagihan (Rp)</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                value="${escapeHtml(splitBillState.subtotal)}"
+                oninput="splitBillState.subtotal = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : ''; this.value = splitBillState.subtotal; updateSplitBillSummaryOnly();"
+                placeholder="0"
+                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm font-extrabold text-slate-900"
+              />
+            </div>
+
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 block mb-1">Jumlah Orang</label>
+              <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl px-2 py-1.5">
+                <button type="button" onclick="updateSplitBillPeople(-1)" class="w-8 h-8 rounded-xl bg-white border border-slate-200 font-extrabold text-slate-700">-</button>
+                <span class="text-sm font-extrabold text-slate-900">${splitBillState.peopleCount} org</span>
+                <button type="button" onclick="updateSplitBillPeople(1)" class="w-8 h-8 rounded-xl bg-brand text-white font-extrabold">+</button>
+              </div>
+            </div>
+          </div>
+        `}
+
+        <!-- Tax & Discount -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1">Pajak / Service (%)</label>
+            <div class="grid grid-cols-4 gap-1">
+              ${[0, 10, 11, 15].map((pct) => `
+                <button
+                  type="button"
+                  onclick="splitBillState.taxPct = ${pct}; updateSplitBillBody();"
+                  class="py-2 rounded-xl text-[11px] font-extrabold border ${splitBillState.taxPct === pct ? 'bg-brand text-white border-brand' : 'bg-slate-50 text-slate-600 border-slate-200'}"
+                >
+                  ${pct}%
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1">Diskon / Promo (Rp)</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              value="${escapeHtml(splitBillState.discount)}"
+              oninput="splitBillState.discount = parseRupiahInput(this.value) ? parseRupiahInput(this.value).toLocaleString('id-ID') : ''; this.value = splitBillState.discount; updateSplitBillSummaryOnly();"
+              placeholder="0"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+            />
+          </div>
+        </div>
+
+        <!-- Result Box -->
+        <div id="split-bill-summary-box">${renderSplitBillSummaryHTML(res)}</div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" onclick="copySplitBillText()" class="bg-brand-tint hover:bg-brand/15 text-brand text-xs font-extrabold py-3 rounded-2xl flex items-center justify-center gap-1.5 transition">
+            ${getAppIcon('copy', 'w-4 h-4')}
+            <span>Salin Rincian WA</span>
+          </button>
+          <button type="button" onclick="saveMySplitBillShare()" class="bg-brand hover:bg-brand-dark text-white text-xs font-extrabold py-3 rounded-2xl flex items-center justify-center gap-1.5 transition">
+            ${getAppIcon('check', 'w-4 h-4')}
+            <span>Catat Porsiku</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderSplitBillSummaryHTML(res) {
+      return `
+        <div class="bg-brand-tint/60 border border-brand/20 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-slate-600">
+            <span>Total Akhir (pajak ${splitBillState.taxPct}%)</span>
+            <b class="text-slate-900">${formatRupiah(res.grandTotal)}</b>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-brand/15">
+            <span class="text-xs font-extrabold text-brand">
+              ${splitBillState.mode === 'equal' ? 'Patungan Per Orang' : 'Porsi Kamu (' + escapeHtml(splitBillState.people[0]?.name || 'Aku') + ')'}
+            </span>
+            <span class="text-lg font-extrabold text-brand">${formatRupiah(res.myShare)}</span>
+          </div>
+          ${splitBillState.mode === 'scan_items' && res.breakdown.length > 0 ? `
+            <div class="pt-1.5 border-t border-brand/15 space-y-1.5">
+              ${res.breakdown.map((b) => `
+                <div class="flex items-start justify-between gap-2 text-[11px] text-slate-700">
+                  <div class="min-w-0">
+                    <span class="font-extrabold text-slate-900">${escapeHtml(b.name)}</span>
+                    ${b.itemsList.length ? `<p class="text-[10px] text-slate-500 truncate">${escapeHtml(b.itemsList.join(', '))}</p>` : ''}
+                  </div>
+                  <b class="shrink-0 text-slate-900">${formatRupiah(b.finalShare)}</b>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function updateSplitBillSummaryOnly() {
+      const box = document.getElementById('split-bill-summary-box');
+      if (!box) return;
+      box.innerHTML = renderSplitBillSummaryHTML(calculateSplitBillResult());
+    }
+
+    async function copySplitBillText() {
+      const res = calculateSplitBillResult();
+      if (res.grandTotal <= 0) {
+        showToast('Masukkan nominal tagihan terlebih dahulu.', 'warning');
+        return;
+      }
+
+      const lines = [
+        `🧾 *Split Bill: ${splitBillState.title || 'Patungan'}*`,
+        `Total Tagihan: *${formatRupiah(res.grandTotal)}* (termasuk pajak ${splitBillState.taxPct}%)`
+      ];
+
+      if (splitBillState.mode === 'equal') {
+        lines.push(`Dibagi ${splitBillState.peopleCount} orang → *${formatRupiah(res.perPerson)} / orang*`);
+      } else {
+        lines.push('');
+        res.breakdown.forEach((b) => {
+          const detailItems = b.itemsList.length ? ` (${b.itemsList.join(', ')})` : '';
+          lines.push(`• *${b.name}*: *${formatRupiah(b.finalShare)}*${detailItems}`);
+        });
+      }
+      lines.push('\n_Dihitung pakai aplikasi Cuan_');
+      const finalText = lines.join('\n');
+
+      try {
+        await navigator.clipboard.writeText(finalText);
+        showToast('📋 Rincian Split Bill masuk ke clipboard! Tinggal paste ke WA.', 'success');
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = finalText;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('📋 Rincian Split Bill disalin ke clipboard!', 'success');
+      }
+    }
+
+    function saveMySplitBillShare() {
+      const res = calculateSplitBillResult();
+      if (res.myShare <= 0) {
+        showToast('Nominal porsimu masih Rp 0.', 'warning');
+        return;
+      }
+
+      const defaultExpenseCat = appState.categories.find((c) => c.id === 'cat_makan') || appState.categories.find((c) => c.type === 'expense') || appState.categories[0];
+      const todayISO = toISODate(new Date());
+
+      appState.transactions.unshift({
+        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        type: 'expense',
+        amount: res.myShare,
+        categoryId: defaultExpenseCat?.id || 'cat_makan',
+        date: todayISO,
+        note: `Split Bill: ${splitBillState.title || 'Patungan'}`,
+        receiptImage: splitBillState.receiptImage || ''
+      });
+
+      if (defaultExpenseCat) {
+        checkCategoryBudgetAlert(defaultExpenseCat.id, todayISO);
+      }
+
+      uiState.selectedCycleKey = findCycleKeyForDate(new Date());
+      saveState();
+      closeModal();
+      renderApp();
+      showToast(`✅ Porsimu (${formatRupiah(res.myShare)}) tercatat ke Cuan Keluar!`, 'success');
     }
 
     function openNotificationsModal() {
       const root = document.getElementById('modal-root');
       const list = appState.notifications || [];
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
           <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[82dvh] overflow-y-auto space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
             <div class="flex items-center justify-between">
               <h2 class="text-base font-extrabold text-slate-900">Pusat Notifikasi</h2>
               <div class="flex items-center gap-2">
-                <button onclick="markAllNotificationsRead()" class="text-xs font-bold text-brand">Tandai Dibaca</button>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+                <button type="button" onclick="markAllNotificationsRead()" class="text-xs font-bold text-brand">Tandai Dibaca</button>
+                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
               </div>
             </div>
 
@@ -2632,40 +3623,117 @@
 
     /**
      * ============================================================================
-     * AUTH, SIGN-UP, LUPA SANDI & PASSWORD RECOVERY MODAL
+     * AUTH, SIGN-UP + CHECKBOX SYARAT & KEBIJAKAN PRIVASI, GOOGLE OAUTH, LUPA SANDI
      * ============================================================================
      */
     let authModalMode = 'login'; // 'login' | 'signup' | 'forgot'
+    let authTermsAccepted = false;
+
+    function openPrivacyPolicyModal(activeTab = 'privacy', returnToAuth = true) {
+      const root = document.getElementById('modal-root');
+      root.innerHTML = `
+        <div class="fixed inset-0 z-[70] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) ${returnToAuth ? 'openAuthOrProfileModal()' : 'closeModal()'}">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[88dvh] overflow-y-auto space-y-4">
+            <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-brand-tint text-brand flex items-center justify-center">
+                  ${getAppIcon('shield', 'w-4 h-4')}
+                </div>
+                <h2 class="text-base font-extrabold text-slate-900">Privasi & Ketentuan Cuan</h2>
+              </div>
+              <button type="button" onclick="${returnToAuth ? 'openAuthOrProfileModal()' : 'closeModal()'}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-extrabold">
+              <button type="button" onclick="openPrivacyPolicyModal('privacy', ${returnToAuth})" class="py-2 rounded-xl transition ${activeTab === 'privacy' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+                Kebijakan Privasi
+              </button>
+              <button type="button" onclick="openPrivacyPolicyModal('terms', ${returnToAuth})" class="py-2 rounded-xl transition ${activeTab === 'terms' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">
+                Syarat & Ketentuan
+              </button>
+            </div>
+
+            ${activeTab === 'privacy' ? `
+              <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">1. Data yang Kami Kumpulkan</p>
+                  <p>Cuan hanya menyimpan informasi yang kamu masukkan secara sadar, meliputi nama panggilan, alamat email akun, serta catatan transaksi keuangan (nominal, kategori, tanggal, dan lampiran foto struk).</p>
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">2. Penyimpanan Lokal & Enkripsi Cloud</p>
+                  <p>Catatan keuanganmu tersimpan secara lokal di perangkat dan disinkronkan melalui layanan cloud terenkripsi (Supabase PostgreSQL dengan kebijakan keamanan tingkat baris / <i>Row-Level Security</i>) sehingga hanya akunmu yang dapat mengakses datamu sendiri.</p>
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">3. Tidak Ada Penjualan Data ke Pihak Ketiga</p>
+                  <p>Kami tidak pernah menjual, menyewakan, atau membagikan data transaksi maupun kebiasaan finansialmu kepada pihak ketiga atau jaringan iklan mana pun.</p>
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">4. Hak Kontrol Penuh Pengguna</p>
+                  <p>Kamu berhak mengunduh salinan seluruh datamu kapan saja dalam format <b>.CSV</b> maupun <b>.JSON</b>, serta menghapus catatan transaksi dari perangkat dan cloud.</p>
+                </div>
+              </div>
+            ` : `
+              <div class="space-y-3 text-xs text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">1. Fungsi Aplikasi</p>
+                  <p><b>Cuan</b> merupakan aplikasi pencatat dan pengelola arus kas pribadi berbasis PWA. Cuan bukan lembaga perbankan, dompet digital penyimpan dana riil, maupun penasihat investasi berizin.</p>
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">2. Tanggung Jawab Keamanan Akun</p>
+                  <p>Pengguna bertanggung jawab menjaga kerahasiaan kata sandi dan akses perangkat yang digunakan untuk masuk ke akun Cuan.</p>
+                </div>
+                <div>
+                  <p class="font-extrabold text-slate-900 mb-0.5">3. Akurasi Fitur Otomatis (Suara, AI & Scan Struk)</p>
+                  <p>Fitur input suara, teks AI, dan pemindaian struk dirancang untuk mempercepat pencatatan. Pengguna disarankan memeriksa kembali hasil deteksi nominal sebelum menyimpan transaksi.</p>
+                </div>
+              </div>
+            `}
+
+            <button
+              type="button"
+              onclick="authTermsAccepted = true; ${returnToAuth ? 'openAuthOrProfileModal()' : 'closeModal()'}"
+              class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl"
+            >
+              Saya Mengerti & Setuju
+            </button>
+          </div>
+        </div>
+      `;
+    }
 
     function openAuthOrProfileModal() {
       const root = document.getElementById('modal-root');
       if (currentUser) {
         root.innerHTML = `
-          <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+          <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
             <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 space-y-4">
               <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
               <div class="flex items-center justify-between">
                 <h2 class="text-base font-extrabold text-slate-900">Profil Akun & Cloud</h2>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
               </div>
 
-              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2">
-                <p class="text-[11px] font-bold text-slate-400">Email Terhubung</p>
-                <p class="text-xs font-extrabold text-slate-900">${escapeHtml(currentUser.email)}</p>
-                <p class="text-[11px] text-emerald-600 font-bold">✓ Sinkronisasi Cloud Otomatis Aktif</p>
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                ${renderUserAvatar('w-12 h-12', 'text-lg', 'brand')}
+                <div class="min-w-0">
+                  <p class="text-[11px] font-bold text-slate-400">Email Terhubung</p>
+                  <p class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(currentUser.email)}</p>
+                  <p class="text-[11px] text-emerald-600 font-bold mt-0.5">✓ Sinkronisasi Cloud Otomatis Aktif</p>
+                </div>
               </div>
 
               <div>
                 <label class="text-[11px] font-bold text-slate-500 block mb-1">Nama Panggilan</label>
                 <div class="flex gap-2">
                   <input id="profile-name-input" type="text" value="${escapeHtml(appState.userName)}" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
-                  <button onclick="appState.userName = document.getElementById('profile-name-input').value.trim() || 'Sobat Cuan'; saveState(); renderApp(); showToast('Nama diperbarui!', 'success');" class="bg-brand text-white text-xs font-bold px-4 py-2 rounded-xl">
+                  <button type="button" onclick="appState.userName = document.getElementById('profile-name-input').value.trim() || 'Sobat Cuan'; saveState(); renderApp(); showToast('Nama diperbarui!', 'success');" class="bg-brand text-white text-xs font-bold px-4 py-2 rounded-xl">
                     Simpan
                   </button>
                 </div>
               </div>
 
-              <button onclick="handleLogout()" class="w-full bg-rose-600 text-white text-xs font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2">
+              <button type="button" onclick="handleLogout()" class="w-full bg-rose-600 text-white text-xs font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2">
                 ${getAppIcon('logout', 'w-4 h-4')}
                 <span>Keluar Akun (Log Out)</span>
               </button>
@@ -2679,20 +3747,20 @@
       const cooldownLeft = Math.max(0, Math.ceil((uiState.resetCooldownUntil - now) / 1000));
 
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
-          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 space-y-4">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+          <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 max-h-[90dvh] overflow-y-auto space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
             <div class="flex items-center justify-between">
               <h2 class="text-base font-extrabold text-slate-900">
                 ${authModalMode === 'signup' ? 'Daftar Akun Baru' : (authModalMode === 'forgot' ? 'Reset Kata Sandi' : 'Masuk ke Cloud Sync')}
               </h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
             </div>
 
             ${authModalMode !== 'forgot' ? `
               <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-2xl text-xs font-bold">
-                <button onclick="authModalMode='login'; openAuthOrProfileModal();" class="py-2 rounded-xl ${authModalMode === 'login' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">Masuk</button>
-                <button onclick="authModalMode='signup'; openAuthOrProfileModal();" class="py-2 rounded-xl ${authModalMode === 'signup' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">Daftar Baru</button>
+                <button type="button" onclick="authModalMode='login'; openAuthOrProfileModal();" class="py-2 rounded-xl ${authModalMode === 'login' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">Masuk</button>
+                <button type="button" onclick="authModalMode='signup'; openAuthOrProfileModal();" class="py-2 rounded-xl ${authModalMode === 'signup' ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}">Daftar Baru</button>
               </div>
             ` : ''}
 
@@ -2728,6 +3796,25 @@
                 </div>
               ` : ''}
 
+              ${authModalMode === 'signup' ? `
+                <label class="flex items-start gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200 cursor-pointer">
+                  <input
+                    id="auth-terms-checkbox"
+                    type="checkbox"
+                    ${authTermsAccepted ? 'checked' : ''}
+                    onchange="authTermsAccepted = this.checked"
+                    class="mt-0.5 w-4 h-4 accent-brand rounded shrink-0"
+                  />
+                  <span class="text-[11px] text-slate-600 leading-relaxed">
+                    Saya menyetujui
+                    <button type="button" onclick="event.preventDefault(); openPrivacyPolicyModal('terms', true)" class="text-brand font-extrabold underline">Syarat & Ketentuan</button>
+                    serta
+                    <button type="button" onclick="event.preventDefault(); openPrivacyPolicyModal('privacy', true)" class="text-brand font-extrabold underline">Kebijakan Privasi</button>
+                    aplikasi Cuan.
+                  </span>
+                </label>
+              ` : ''}
+
               <button
                 type="submit"
                 ${authModalMode === 'forgot' && cooldownLeft > 0 ? 'disabled' : ''}
@@ -2748,10 +3835,26 @@
             </form>
 
             ${authModalMode !== 'forgot' ? `
-              <div class="pt-1">
-                <button type="button" onclick="signInWithGoogleOAuth()" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-extrabold py-3 rounded-2xl flex items-center justify-center gap-2">
+              <div class="pt-1 space-y-2.5">
+                <button id="google-oauth-btn" type="button" onclick="signInWithGoogleOAuth()" class="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-extrabold py-3 rounded-2xl flex items-center justify-center gap-2.5 shadow-2xs transition">
+                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                  </svg>
                   <span>Lanjutkan dengan Google</span>
                 </button>
+
+                ${authModalMode === 'login' ? `
+                  <p class="text-[10px] text-center text-slate-400">
+                    Dengan melanjutkan, kamu menyetujui
+                    <button type="button" onclick="openPrivacyPolicyModal('terms', true)" class="text-brand font-bold underline">Syarat & Ketentuan</button>
+                    &
+                    <button type="button" onclick="openPrivacyPolicyModal('privacy', true)" class="text-brand font-bold underline">Kebijakan Privasi</button>
+                    Cuan.
+                  </p>
+                ` : ''}
               </div>
             ` : ''}
           </div>
@@ -2773,7 +3876,7 @@
       try {
         if (authModalMode === 'forgot') {
           const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin
+            redirectTo: window.location.origin + window.location.pathname
           });
           if (error) throw error;
           uiState.resetCooldownUntil = Date.now() + 60000;
@@ -2783,6 +3886,12 @@
         }
 
         if (authModalMode === 'signup') {
+          const isChecked = document.getElementById('auth-terms-checkbox')?.checked || authTermsAccepted;
+          if (!isChecked) {
+            showToast('⚠️ Harap centang Syarat & Ketentuan serta Kebijakan Privasi sebelum mendaftar.', 'warning');
+            return;
+          }
+
           const { data, error } = await supabaseClient.auth.signUp({
             email,
             password,
@@ -2818,22 +3927,52 @@
     }
 
     async function signInWithGoogleOAuth() {
-      if (!supabaseClient) return;
+      if (authModalMode === 'signup') {
+        const isChecked = document.getElementById('auth-terms-checkbox')?.checked || authTermsAccepted;
+        if (!isChecked) {
+          showToast('⚠️ Harap centang Syarat & Ketentuan serta Kebijakan Privasi sebelum mendaftar.', 'warning');
+          return;
+        }
+      }
+
+      if (!supabaseClient) {
+        showToast('Layanan autentikasi belum siap.', 'danger');
+        return;
+      }
+      const btn = document.getElementById('google-oauth-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Menghubungkan ke Google...</span>';
+      }
       try {
-        const { error } = await supabaseClient.auth.signInWithOAuth({
+        const redirectUrl = window.location.origin + window.location.pathname;
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: window.location.origin }
+          options: {
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account'
+            }
+          }
         });
         if (error) throw error;
+        if (data?.url) {
+          window.location.assign(data.url);
+        }
       } catch (err) {
-        showToast(translateAuthError(err.message), 'danger');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>Lanjutkan dengan Google</span>';
+        }
+        showToast(translateAuthError(err?.message || 'Gagal login Google'), 'danger');
       }
     }
 
     function openNewPasswordModal() {
       const root = document.getElementById('modal-root');
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-center justify-center p-4">
           <div class="bg-white w-full max-w-[380px] rounded-3xl p-5 space-y-4 shadow-xl">
             <div class="w-11 h-11 rounded-2xl bg-brand-tint text-brand flex items-center justify-center">
               ${getAppIcon('lock', 'w-5 h-5')}
@@ -2892,7 +4031,7 @@
 
     /**
      * ============================================================================
-     * 15. SMOOTH SINGLE-GLIDE SPOTLIGHT TOUR & PANDUAN INSTALL PWA
+     * 15. SMOOTH SINGLE-GLIDE SPOTLIGHT TOUR & DIRECT INSTALL PWA
      * ============================================================================
      */
     const TOUR_STEPS = [
@@ -2903,23 +4042,23 @@
       },
       {
         targetId: 'tour-quick-actions',
-        title: 'Catat Cuan Cepat ⚡',
-        desc: 'Catat transaksi lewat Suara, kalimat santai Catat AI, atau foto bukti struk QRIS dalam hitungan detik.'
+        title: 'Catat Cuan & Split Bill ⚡',
+        desc: 'Catat transaksi lewat Suara, Catat AI, Scan Struk, hingga Split Bill patungan dalam hitungan detik.'
       },
       {
         targetId: 'tour-fab-plus',
         title: 'Tap + atau Tahan untuk Suara 🎙️',
-        desc: 'Ketuk tombol + untuk input manual, atau tahan (long-press) tombol + untuk langsung mengaktifkan mikrofon.'
+        desc: 'Ketuk tombol + di halaman mana pun untuk input manual, atau tahan tombol + untuk langsung mengaktifkan mikrofon.'
       },
       {
         targetId: 'tour-budget-card',
         title: 'Pantau Batas Pos Jajan 🎯',
-        desc: 'Atur limit pengeluaran per kategori dan dapatkan peringatan otomatis saat pemakaian menyentuh 80% & 100%.'
+        desc: 'Atur limit pengeluaran per kategori (lengkap dengan pilihan ikon) dan dapatkan peringatan otomatis di 80% & 100%.'
       },
       {
         targetId: 'nav-lainnya',
         title: 'Pasang di Layar Utama HP 📲',
-        desc: 'Buka menu Lainnya → Install Aplikasi di HP untuk memasang Cuan ke Home Screen seperti aplikasi native!'
+        desc: 'Buka menu Lainnya → Install Aplikasi di HP untuk memasang Cuan langsung ke Home Screen!'
       }
     ];
 
@@ -2934,15 +4073,15 @@
         <div id="tour-popup-card" class="fixed z-[95] bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 space-y-2.5" style="width: 310px;">
           <div class="flex items-center justify-between">
             <span id="tour-step-badge" class="text-[10px] font-extrabold uppercase tracking-wider text-brand bg-brand-tint px-2.5 py-0.5 rounded-full"></span>
-            <button onclick="endSpotlightTour()" class="text-[11px] font-bold text-slate-400 hover:text-slate-700">Lewati</button>
+            <button type="button" onclick="endSpotlightTour()" class="text-[11px] font-bold text-slate-400 hover:text-slate-700">Lewati</button>
           </div>
           <h3 id="tour-step-title" class="text-sm font-extrabold text-slate-900"></h3>
           <p id="tour-step-desc" class="text-xs text-slate-600 leading-relaxed"></p>
           <div class="flex items-center justify-between pt-1">
-            <button id="tour-prev-btn" onclick="stepSpotlightTour(-1)" class="text-xs font-bold text-slate-500 px-3 py-1.5 rounded-xl bg-slate-100">
+            <button type="button" id="tour-prev-btn" onclick="stepSpotlightTour(-1)" class="text-xs font-bold text-slate-500 px-3 py-1.5 rounded-xl bg-slate-100">
               Kembali
             </button>
-            <button id="tour-next-btn" onclick="stepSpotlightTour(1)" class="text-xs font-extrabold text-white bg-brand px-4 py-2 rounded-xl">
+            <button type="button" id="tour-next-btn" onclick="stepSpotlightTour(1)" class="text-xs font-extrabold text-white bg-brand px-4 py-2 rounded-xl">
               Lanjut
             </button>
           </div>
@@ -3012,11 +4151,16 @@
 
     async function triggerPwaInstall() {
       if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        if (outcome === 'accepted') {
-          deferredInstallPrompt = null;
-          renderApp();
+        try {
+          deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          if (outcome === 'accepted') {
+            deferredInstallPrompt = null;
+            showToast('🎉 Cuan sedang dipasang ke layar utama HP kamu!', 'success');
+            renderApp();
+          }
+        } catch (_) {
+          openInstallGuideModal();
         }
         return;
       }
@@ -3024,35 +4168,52 @@
     }
 
     function openInstallGuideModal() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       const root = document.getElementById('modal-root');
       root.innerHTML = `
-        <div class="fixed inset-0 z-50 modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
+        <div class="fixed inset-0 z-[60] modal-backdrop flex items-end justify-center" onclick="if(event.target===this) closeModal()">
           <div class="bottom-sheet bg-white w-full max-w-[480px] rounded-t-3xl p-5 space-y-4">
             <div class="w-10 h-1 bg-slate-200 rounded-full mx-auto"></div>
             <div class="flex items-center justify-between">
-              <h2 class="text-base font-extrabold text-slate-900">Cara Pasang Cuan di HP</h2>
-              <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
+              <h2 class="text-base font-extrabold text-slate-900">Pasang Cuan di HP</h2>
+              <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">✕</button>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
-              <p class="text-xs font-extrabold text-slate-900">Pengguna Android (Google Chrome)</p>
-              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
-                <li>Pastikan halaman ini dibuka di aplikasi <b>Google Chrome</b>.</li>
-                <li>Ketuk ikon <b>titik tiga (⋮)</b> di pojok kanan atas browser.</li>
-                <li>Pilih <b>Install aplikasi</b> atau <b>Tambahkan ke Layar utama</b>, lalu ketuk <b>Install</b>.</li>
-              </ol>
-            </div>
+            ${isStandalone ? `
+              <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs font-bold text-emerald-800">
+                ✓ Aplikasi Cuan sudah terpasang dan berjalan di layar utama HP kamu!
+              </div>
+            ` : `
+              ${deferredInstallPrompt ? `
+                <button type="button" onclick="closeModal(); triggerPwaInstall();" class="w-full bg-brand text-white text-xs font-extrabold py-3.5 rounded-2xl shadow-md">
+                  📲 Pasang Aplikasi Sekarang (1-Klik)
+                </button>
+              ` : `
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  Jika pop-up instalasi otomatis belum muncul di browser ini, pasang secara instan lewat menu browser:
+                </p>
+              `}
 
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
-              <p class="text-xs font-extrabold text-slate-900">Pengguna iPhone / iPad (Safari)</p>
-              <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
-                <li>Buka link aplikasi ini menggunakan browser <b>Safari</b>.</li>
-                <li>Ketuk ikon <b>Share (kotak dengan panah ke atas)</b> di bagian bawah layar.</li>
-                <li>Gulir ke bawah lalu pilih <b>Add to Home Screen (Tambah ke Layar Utama)</b>.</li>
-              </ol>
-            </div>
+              <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
+                <p class="text-xs font-extrabold text-slate-900">Pengguna Android (Google Chrome)</p>
+                <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
+                  <li>Pastikan halaman ini dibuka di aplikasi <b>Google Chrome</b>.</li>
+                  <li>Ketuk ikon <b>titik tiga (⋮)</b> di pojok kanan atas browser.</li>
+                  <li>Pilih <b>Install aplikasi</b> atau <b>Tambahkan ke Layar utama</b>, lalu ketuk <b>Install</b>.</li>
+                </ol>
+              </div>
 
-            <button onclick="closeModal()" class="w-full bg-brand text-white text-xs font-extrabold py-3 rounded-2xl">
+              <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
+                <p class="text-xs font-extrabold text-slate-900">Pengguna iPhone / iPad (Safari)</p>
+                <ol class="text-xs text-slate-600 list-decimal pl-4 space-y-1">
+                  <li>Buka link aplikasi ini menggunakan browser <b>Safari</b>.</li>
+                  <li>Ketuk ikon <b>Share (kotak dengan panah ke atas)</b> di bagian bawah layar.</li>
+                  <li>Gulir ke bawah lalu pilih <b>Add to Home Screen (Tambah ke Layar Utama)</b>.</li>
+                </ol>
+              </div>
+            `}
+
+            <button type="button" onclick="closeModal()" class="w-full bg-slate-900 text-white text-xs font-extrabold py-3 rounded-2xl">
               Mengerti
             </button>
           </div>
@@ -3281,7 +4442,7 @@
 
     /**
      * ============================================================================
-     * 16. INISIALISASI GESTUR LONG-PRESS FAB (+), PWA & BOOTSTRAP APLIKASI
+     * 16. INISIALISASI GESTUR LONG-PRESS FAB (+) YANG RELIABEL DI SEMUA HALAMAN
      * ============================================================================
      */
     function initFabLongPress() {
@@ -3289,38 +4450,46 @@
       if (!fab) return;
 
       let pressTimer = null;
+      let isPressing = false;
       let longPressTriggered = false;
 
-      const startPress = (e) => {
-        if (e.type === 'mousedown' && e.button !== 0) return;
+      const clearPress = () => {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+        isPressing = false;
+        fab.classList.remove('pressing');
+      };
+
+      fab.addEventListener('pointerdown', (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        e.preventDefault();
+        isPressing = true;
         longPressTriggered = false;
         fab.classList.add('pressing');
 
         pressTimer = setTimeout(() => {
+          if (!isPressing) return;
           longPressTriggered = true;
-          fab.classList.remove('pressing');
+          clearPress();
           if (navigator.vibrate) navigator.vibrate(40);
           openAddTransactionModal('voice');
         }, 420);
-      };
+      });
 
-      const endPress = (e) => {
-        clearTimeout(pressTimer);
-        fab.classList.remove('pressing');
-        if (!longPressTriggered && e.type !== 'mouseleave' && e.type !== 'touchcancel') {
+      fab.addEventListener('pointerup', (e) => {
+        if (!isPressing && !longPressTriggered) return;
+        e.preventDefault();
+        const wasLong = longPressTriggered;
+        clearPress();
+        if (!wasLong) {
           openAddTransactionModal('manual');
         }
-      };
-
-      fab.addEventListener('touchstart', startPress, { passive: true });
-      fab.addEventListener('touchend', endPress);
-      fab.addEventListener('touchcancel', endPress);
-      fab.addEventListener('mousedown', startPress);
-      fab.addEventListener('mouseup', endPress);
-      fab.addEventListener('mouseleave', () => {
-        clearTimeout(pressTimer);
-        fab.classList.remove('pressing');
+        longPressTriggered = false;
       });
+
+      fab.addEventListener('pointercancel', clearPress);
+      fab.addEventListener('pointerleave', clearPress);
+      fab.addEventListener('contextmenu', (e) => e.preventDefault());
     }
 
     function initPwaAndServiceWorker() {
