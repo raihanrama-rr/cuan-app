@@ -79,7 +79,6 @@
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Animasi modal hanya berjalan 1x saat modal dibuka agar tidak gerak-gerak saat mengetik */
     @keyframes backdropFadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -98,7 +97,6 @@
       animation: sheetSlideUp 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
 
-    /* Laser scan animation for Receipt OCR */
     @keyframes scanLaser {
       0% { top: 8%; }
       50% { top: 88%; }
@@ -115,7 +113,6 @@
       animation: scanLaser 1.6s ease-in-out infinite;
     }
 
-    /* Pulse ring for voice recording */
     @keyframes pulseMic {
       0% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0.45); }
       70% { box-shadow: 0 0 0 16px rgba(var(--brand-rgb), 0); }
@@ -125,7 +122,6 @@
       animation: pulseMic 1.4s infinite;
     }
 
-    /* Spotlight Tour */
     #tour-highlight-box {
       position: fixed;
       border-radius: 16px;
@@ -154,7 +150,7 @@
     <!-- Main Dynamic View -->
     <main id="main-content" class="pb-28"></main>
 
-    <!-- Bottom Navigation Bar (z-50 aktif di semua menu) -->
+    <!-- Bottom Navigation Bar -->
     <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[440px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 pt-2 pb-3 z-50 select-none">
       <div class="grid grid-cols-5 items-end text-center">
         <button type="button" onclick="switchTab('beranda')" data-tab="beranda" class="nav-btn flex flex-col items-center gap-1 py-1 text-slate-400 transition-colors">
@@ -248,7 +244,6 @@
       anonKey: 'sb_publishable_-4i05ZsjNBvlLE02KDoPxQ_5cMdtpRE'
     };
 
-    // Tambahkan pengumuman baru di urutan paling atas array ini agar muncul di lonceng notifikasi pengguna
     const DEVELOPER_ANNOUNCEMENTS = [
       {
         id: 'ann_v28_release',
@@ -355,7 +350,6 @@
       lastReminderDate: ''
     };
 
-    // Runtime UI state
     let activeTab = 'beranda';
     let currentUser = null;
     let isSyncing = false;
@@ -364,9 +358,8 @@
     let reportChartMode = 'daily';
     let reportChartInstance = null;
 
-    // Modal state
     let currentModalType = null;
-    let txModalTab = 'manual'; // manual | voice | ai | scan
+    let txModalTab = 'manual';
     let editingTxId = null;
     let txDraft = {
       type: 'expense',
@@ -384,19 +377,16 @@
     let speechRecognition = null;
     let scanPreviewData = null;
 
-    // Category CRUD state
     let catModalTab = 'expense';
     let editingCategoryId = null;
     let catFormName = '';
     let catFormIcon = 'utensils';
     let catFormLimit = '';
 
-    // Payday modal state
     let paydayEditingMonth = '';
     let applyAsDefaultPayday = false;
 
-    // Split Bill state
-    let splitBillMode = 'equal'; // equal | itemized
+    let splitBillMode = 'equal';
     let splitEqualTotal = '';
     let splitEqualTax = 10;
     let splitEqualPeople = 2;
@@ -409,8 +399,7 @@
     let splitItemReceiptImg = '';
     let splitIsScanning = false;
 
-    // Auth modal state
-    let authMode = 'login'; // login | signup | forgot | recovery
+    let authMode = 'login';
     let authEmailInput = '';
     let authPasswordInput = '';
     let authNameInput = '';
@@ -419,11 +408,9 @@
     let forgotCooldownSec = 0;
     let forgotCooldownTimer = null;
 
-    // Filter state in Transaksi tab
     let txSearchQuery = '';
     let txTypeFilter = 'all';
 
-    // Spotlight tour state
     let tourStepIndex = 0;
 
     /*************************************************************************
@@ -1049,7 +1036,6 @@
       const showInstallBanner = !window.matchMedia('(display-mode: standalone)').matches && !sessionStorage.getItem('hide_pwa_banner');
 
       return `
-        <!-- Curved Hero Header -->
         <section class="hero-gradient text-white pt-5 pb-16 px-5 rounded-b-[32px] shadow-md relative">
           <div class="flex items-center justify-between gap-2">
             <button type="button" onclick="openProfileOrAuthModal()" class="flex items-center gap-2.5 text-left min-w-0 group">
@@ -1741,7 +1727,7 @@
             <div class="pt-3 space-y-1.5">
               <div class="flex items-center justify-between text-[11px] text-slate-400">
                 <span>Cuan — Catatan Keuangan & Siklus Gajian</span>
-                <span class="font-bold">v3.0.0</span>
+                <span class="font-bold">v3.0.2</span>
               </div>
               <div class="flex items-center justify-between text-[11px] text-slate-500">
                 <span>Developed by <strong class="font-extrabold brand-text">Hann</strong></span>
@@ -1754,7 +1740,7 @@
     }
 
     /*************************************************************************
-     * 14. SISTEM MODAL STABIL (TANPA ANIMASI ULANG SAAT INPUT BERUBAH)
+     * 14. SISTEM MODAL STABIL
      *************************************************************************/
     function openModalShell(type, innerHTML) {
       const backdrop = document.getElementById('modal-backdrop');
@@ -2339,7 +2325,6 @@
           </button>
         </div>
 
-        <!-- Form Tambah / Edit Kategori -->
         <form onsubmit="saveCategoryForm(event)" class="mt-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-extrabold text-slate-800">${editingCategoryId ? 'Edit Kategori' : '+ Tambah Kategori Baru'}</span>
@@ -2380,7 +2365,6 @@
           </button>
         </form>
 
-        <!-- Daftar Kategori Tersedia -->
         <div class="mt-4 space-y-2">
           <div class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Daftar Kategori (${list.length})</div>
           ${list.map((cat) => `
@@ -2482,7 +2466,7 @@
     }
 
     /*************************************************************************
-     * 17. MODAL ATUR TANGGAL GAJIAN TIAP BULAN (BULAN BERJALAN & KUSTOM)
+     * 17. MODAL ATUR TANGGAL GAJIAN TIAP BULAN
      *************************************************************************/
     function openPaydayModal() {
       paydayEditingMonth = appState.selectedCycleKey || getCurrentMonthKey();
@@ -2512,7 +2496,6 @@
         </div>
 
         <form onsubmit="savePaydaySetting(event)" class="mt-3.5 space-y-3.5">
-          <!-- Pemilih Bulan -->
           <div class="flex items-center justify-between bg-slate-100 p-2 rounded-2xl">
             <button type="button" onclick="shiftPaydayMonth(-1)" class="w-9 h-9 rounded-xl bg-white text-slate-700 font-extrabold shadow-xs">‹</button>
             <div class="text-center">
@@ -2522,7 +2505,6 @@
             <button type="button" onclick="shiftPaydayMonth(1)" class="w-9 h-9 rounded-xl bg-white text-slate-700 font-extrabold shadow-xs">›</button>
           </div>
 
-          <!-- Grid Pilihan Tanggal 1 - 31 -->
           <div>
             <label class="block text-[11px] font-bold text-slate-600 mb-1.5">Pilih Tanggal Gajian (${formatMonthLabel(paydayEditingMonth)})</label>
             <div class="grid grid-cols-7 gap-1.5">
@@ -2535,7 +2517,6 @@
             </div>
           </div>
 
-          <!-- Pratinjau Rentang Siklus -->
           <div class="p-3 rounded-2xl brand-tint-bg brand-text text-xs">
             <div class="font-bold">Pratinjau Siklus ${formatMonthLabel(paydayEditingMonth)}:</div>
             <div class="font-extrabold mt-0.5">${escapeHtml(previewRange.label)}</div>
@@ -2669,7 +2650,6 @@
           </div>
         ` : `
           <div class="mt-3.5 space-y-3">
-            <!-- Scan Struk Split Bill -->
             <label class="block w-full py-3 px-3.5 rounded-2xl border border-dashed border-slate-300 text-center cursor-pointer hover:bg-slate-50">
               <span class="text-xs font-extrabold brand-text">📸 Scan Struk untuk Isi Menu Otomatis</span>
               <input type="file" accept="image/*" onchange="handleSplitReceiptUpload(event)" class="hidden" />
@@ -2682,7 +2662,6 @@
               </div>
             ` : ''}
 
-            <!-- Daftar Teman Patungan -->
             <div>
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[11px] font-bold text-slate-600">Anggota Patungan</span>
@@ -2698,7 +2677,6 @@
               </div>
             </div>
 
-            <!-- Daftar Item Menu & Edit Punya Siapa -->
             <div class="space-y-2 max-h-48 overflow-y-auto">
               ${splitItems.map((item, idx) => `
                 <div class="p-2.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
@@ -2735,7 +2713,6 @@
               </div>
             </div>
 
-            <!-- Ringkasan Per Orang -->
             <div class="p-3 rounded-2xl brand-tint-bg space-y-1">
               <div class="text-[11px] font-extrabold brand-text mb-1">Rincian Patungan (Termasuk Pajak ${splitItemTaxPercent}%):</div>
               ${Object.entries(itemizedTotals).map(([person, amt]) => `
@@ -3017,7 +2994,7 @@
           <button type="button" onclick="${fromSignup ? "openAuthModal('signup')" : 'closeModal()'}" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">✕</button>
         </div>
         <div class="mt-3 space-y-2.5 text-xs text-slate-600 leading-relaxed max-h-[58dvh] overflow-y-auto pr-1">
-          <p><strong class="text-slate-900">1. Tujuan Layanan:</strong> Cuan adalah aplikasi pencatatan keuangan pribadi berbasis siklus tanggal gajian untuk membantu pengelolaan arus kas harian.</p>
+          <p><strong class="text-slate-900">1. Tujuan Layanan:</strong> Cuan adalah aplikasi pencatat keuangan pribadi berbasis siklus tanggal gajian untuk membantu pengelolaan arus kas harian.</p>
           <p><strong class="text-slate-900">2. Penyimpanan & Keamanan Data:</strong> Dalam Mode Simulasi, seluruh catatan tersimpan secara lokal di perangkat Anda. Jika Anda menautkan akun Google/Email, data transaksi disinkronkan secara terenkripsi ke server cloud pribadi Anda dan tidak pernah dijual atau dibagikan kepada pihak ketiga.</p>
           <p><strong class="text-slate-900">3. Foto Struk & Input Suara:</strong> Pemrosesan suara dan kompresi gambar struk dilakukan langsung di perangkat pengguna demi menjaga privasi dan kecepatan.</p>
           <p><strong class="text-slate-900">4. Hak Ekspor & Penghapusan Data:</strong> Pengguna bebas mengekspor cadangan (.JSON / .CSV) maupun menghapus seluruh riwayat transaksi kapan saja.</p>
