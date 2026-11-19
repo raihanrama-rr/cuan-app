@@ -1,4 +1,3 @@
-```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
   <defs>
     <linearGradient id="cuanBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
@@ -18,4 +17,3 @@
   <path d="M376 144 C376 164 382 170 402 170 C382 170 376 176 376 196 C376 176 370 170 350 170 C370 170 376 164 376 144 Z" fill="#FFFFFF" />
   <circle cx="332" cy="146" r="6" fill="#FFFFFF" fill-opacity="0.75" />
 </svg>
-```
