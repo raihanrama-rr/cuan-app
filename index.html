@@ -375,6 +375,9 @@
     let isRecordingVoice = false;
     let speechRecognition = null;
     let scanPreviewData = null;
+    let isCameraActive = false;
+    let cameraStream = null;
+    let cameraErrorMsg = '';
 
     let catModalTab = 'expense';
     let editingCategoryId = null;
@@ -1726,7 +1729,7 @@
             <div class="pt-3 space-y-1.5">
               <div class="flex items-center justify-between text-[11px] text-slate-400">
                 <span>Cuan — Catatan Keuangan & Siklus Gajian</span>
-                <span class="font-bold">v3.0.2</span>
+                <span class="font-bold">v3.0.4</span>
               </div>
               <div class="flex items-center justify-between text-[11px] text-slate-500">
                 <span>Developed by <strong class="font-extrabold brand-text">Hann</strong></span>
@@ -1755,9 +1758,13 @@
         backdrop.classList.remove('hidden');
         backdrop.classList.remove('modal-backdrop-enter');
         sheet.classList.remove('modal-sheet-enter');
+        sheet.classList.add('pointer-events-none');
         void sheet.offsetWidth;
         backdrop.classList.add('modal-backdrop-enter');
         sheet.classList.add('modal-sheet-enter');
+        setTimeout(() => {
+          sheet.classList.remove('pointer-events-none');
+        }, 250);
       }
     }
 
@@ -1768,6 +1775,7 @@
 
     function closeModal() {
       stopVoiceRecognition();
+      stopScanCameraStream();
       const backdrop = document.getElementById('modal-backdrop');
       if (backdrop) backdrop.classList.add('hidden');
       currentModalType = null;
@@ -1799,6 +1807,8 @@
       voiceTranscript = '';
       voiceParsedItems = [];
       scanPreviewData = null;
+      cameraErrorMsg = '';
+      stopScanCameraStream();
 
       openModalShell('transaction', buildTransactionModalHTML());
       if (tab === 'voice') {
@@ -1824,6 +1834,8 @@
 
     function switchTransactionModalTab(tab) {
       stopVoiceRecognition();
+      stopScanCameraStream();
+      cameraErrorMsg = '';
       txModalTab = tab;
       updateModalInner(buildTransactionModalHTML());
       if (tab === 'voice') {
@@ -1904,11 +1916,12 @@
 
             <div>
               <label class="block text-[11px] font-bold text-slate-600 mb-1">Lampiran Bukti / Struk (Opsional)</label>
+              <input id="manual-receipt-file-input" type="file" accept="image/*" onchange="handleManualReceiptUpload(event)" class="hidden" />
               <div class="flex items-center gap-2">
-                <label class="flex-1 py-2.5 px-3 rounded-2xl border border-dashed border-slate-300 text-center text-xs font-bold text-slate-600 cursor-pointer hover:bg-slate-50">
+                <button type="button" onclick="document.getElementById('manual-receipt-file-input').click()"
+                  class="flex-1 py-2.5 px-3 rounded-2xl border border-dashed border-slate-300 text-center text-xs font-bold text-slate-600 hover:bg-slate-50">
                   ${txDraft.receiptImage ? 'Ganti Foto Struk' : '+ Unggah / Foto Struk'}
-                  <input type="file" accept="image/*" onchange="handleManualReceiptUpload(event)" class="hidden" />
-                </label>
+                </button>
                 ${txDraft.receiptImage ? `<button type="button" onclick="txDraft.receiptImage=''; updateModalInner(buildTransactionModalHTML())" class="px-3 py-2.5 rounded-2xl bg-rose-50 text-rose-600 text-xs font-bold">Hapus</button>` : ''}
               </div>
             </div>
@@ -1964,11 +1977,68 @@
 
         ${txModalTab === 'scan' ? `
           <div class="mt-3.5 space-y-3">
-            <label class="block w-full py-5 px-4 rounded-2xl border-2 border-dashed border-slate-300 text-center cursor-pointer hover:bg-slate-50">
-              <div class="text-xs font-extrabold brand-text">Foto Struk / Unggah Screenshot QRIS</div>
-              <p class="text-[11px] text-slate-500 mt-1">Otomatis dikompresi & diekstrak ke formulir transaksi</p>
-              <input type="file" accept="image/*" onchange="handleReceiptScanUpload(event)" class="hidden" />
-            </label>
+            <input id="scan-native-camera-input" type="file" accept="image/*" capture="environment" onchange="handleReceiptScanUpload(event)" class="hidden" />
+            <input id="scan-gallery-file-input" type="file" accept="image/*" onchange="handleReceiptScanUpload(event)" class="hidden" />
+
+            ${isCameraActive ? `
+              <div class="space-y-2.5">
+                <div class="relative rounded-2xl overflow-hidden bg-slate-950 aspect-[3/4] max-h-72 mx-auto flex items-center justify-center border border-slate-800">
+                  <video id="scan-video-preview" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                  <div class="absolute inset-5 border-2 border-white/60 rounded-2xl pointer-events-none"></div>
+                  <span class="absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-slate-900/75 text-white text-[10px] font-bold whitespace-nowrap">
+                    Arahkan kamera ke struk belanja
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <button type="button" onclick="stopScanCameraStream(); updateModalInner(buildTransactionModalHTML())"
+                    class="py-3 rounded-2xl bg-slate-100 text-slate-700 text-xs font-extrabold">
+                    Tutup
+                  </button>
+                  <button type="button" onclick="captureFromScanCamera()"
+                    class="py-3 rounded-2xl brand-bg text-white text-xs font-extrabold shadow-md active:scale-95 transition">
+                    Jepret Struk
+                  </button>
+                  <button type="button" onclick="document.getElementById('scan-native-camera-input').click()"
+                    class="py-3 rounded-2xl bg-slate-800 text-white text-xs font-extrabold">
+                    Kamera HP
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div class="grid grid-cols-2 gap-2.5">
+                <button type="button" onclick="startScanCamera()"
+                  class="py-4 px-3 rounded-2xl brand-bg text-white flex flex-col items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                  </svg>
+                  <span class="text-xs font-extrabold">Buka Kamera</span>
+                  <span class="text-[10px] text-white/80">Foto struk langsung</span>
+                </button>
+
+                <button type="button" onclick="document.getElementById('scan-gallery-file-input').click()"
+                  class="py-4 px-3 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 flex flex-col items-center justify-center gap-1.5 active:scale-95 transition">
+                  <svg class="w-6 h-6 brand-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <span class="text-xs font-extrabold text-slate-800">Pilih Galeri</span>
+                  <span class="text-[10px] text-slate-500">Screenshot / foto</span>
+                </button>
+              </div>
+            `}
+
+            ${cameraErrorMsg ? `
+              <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-center justify-between gap-2">
+                <span>${escapeHtml(cameraErrorMsg)}</span>
+                <button type="button" onclick="document.getElementById('scan-native-camera-input').click()"
+                  class="shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-600 text-white font-extrabold">
+                  Kamera HP
+                </button>
+              </div>
+            ` : ''}
 
             ${scanPreviewData ? `
               <div class="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 max-h-48 flex items-center justify-center">
@@ -2127,6 +2197,7 @@
     async function handleReceiptScanUpload(e) {
       const file = e.target.files?.[0];
       if (!file) return;
+      stopScanCameraStream();
       try {
         const compressed = await compressImageFile(file);
         scanPreviewData = {
@@ -2142,10 +2213,83 @@
           if (!scanPreviewData) return;
           scanPreviewData.scanning = false;
           updateModalInner(buildTransactionModalHTML());
-        }, 1200);
+        }, 1100);
       } catch (_) {
         showToast('Gagal memuat foto struk', 'error');
       }
+    }
+
+    async function startScanCamera() {
+      stopScanCameraStream();
+      cameraErrorMsg = '';
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const nativeInput = document.getElementById('scan-native-camera-input');
+        if (nativeInput) nativeInput.click();
+        return;
+      }
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+        isCameraActive = true;
+        updateModalInner(buildTransactionModalHTML());
+
+        const videoEl = document.getElementById('scan-video-preview');
+        if (videoEl) {
+          videoEl.srcObject = cameraStream;
+          await videoEl.play().catch(() => {});
+        }
+      } catch (_) {
+        isCameraActive = false;
+        cameraErrorMsg = 'Izin kamera browser dibatasi. Gunakan tombol Kamera HP di samping.';
+        updateModalInner(buildTransactionModalHTML());
+      }
+    }
+
+    function stopScanCameraStream() {
+      isCameraActive = false;
+      if (cameraStream) {
+        try {
+          cameraStream.getTracks().forEach((track) => track.stop());
+        } catch (_) {}
+        cameraStream = null;
+      }
+    }
+
+    function captureFromScanCamera() {
+      const videoEl = document.getElementById('scan-video-preview');
+      if (!videoEl || !videoEl.videoWidth) {
+        showToast('Kamera belum siap, coba sesaat lagi', 'warning');
+        return;
+      }
+
+      const maxWidth = 720;
+      const scale = videoEl.videoWidth > maxWidth ? maxWidth / videoEl.videoWidth : 1;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(videoEl.videoWidth * scale);
+      canvas.height = Math.round(videoEl.videoHeight * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+
+      stopScanCameraStream();
+      scanPreviewData = {
+        image: dataUrl,
+        scanning: true,
+        note: 'Foto Struk Kamera',
+        amount: 45000,
+        categoryId: getDefaultExpenseCatId()
+      };
+      updateModalInner(buildTransactionModalHTML());
+
+      setTimeout(() => {
+        if (!scanPreviewData) return;
+        scanPreviewData.scanning = false;
+        updateModalInner(buildTransactionModalHTML());
+      }, 1100);
     }
 
     function saveScannedTransaction() {
@@ -3284,10 +3428,15 @@
       const target = document.getElementById(step.targetId) || document.getElementById('tour-target-quick');
       if (!target) return;
 
+      const isFixedTarget = step.targetId === 'global-plus-btn';
       const rect = target.getBoundingClientRect();
-      const inView = rect.top >= 16 && rect.bottom <= window.innerHeight - 90;
+      const inView = isFixedTarget || (rect.top >= 24 && rect.bottom <= window.innerHeight - 100);
       if (!inView) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (tourStepIndex === 0) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
 
       setTimeout(() => {
@@ -3296,10 +3445,16 @@
         const card = document.getElementById('tour-tooltip-card');
         const shell = document.getElementById('app-shell').getBoundingClientRect();
 
-        box.style.top = `${Math.max(8, r.top - 6)}px`;
-        box.style.left = `${Math.max(shell.left + 8, r.left - 6)}px`;
-        box.style.width = `${Math.min(shell.width - 16, r.width + 12)}px`;
-        box.style.height = `${r.height + 12}px`;
+        const pad = 6;
+        const boxTop = Math.max(8, r.top - pad);
+        const boxLeft = Math.max(shell.left + 8, r.left - pad);
+        const boxWidth = Math.min(shell.width - 16, r.width + pad * 2);
+        const boxHeight = Math.min(window.innerHeight - 16, r.height + pad * 2);
+
+        box.style.top = `${boxTop}px`;
+        box.style.left = `${boxLeft}px`;
+        box.style.width = `${boxWidth}px`;
+        box.style.height = `${boxHeight}px`;
 
         document.getElementById('tour-step-badge').textContent = `Langkah ${tourStepIndex + 1} / ${TOUR_STEPS.length}`;
         document.getElementById('tour-title').textContent = step.title;
@@ -3307,17 +3462,33 @@
         document.getElementById('tour-prev-btn').style.visibility = tourStepIndex === 0 ? 'hidden' : 'visible';
         document.getElementById('tour-next-btn').textContent = tourStepIndex === TOUR_STEPS.length - 1 ? 'Selesai' : 'Lanjut';
 
-        const cardWidth = 310;
-        const cardHeight = 165;
+        const cardWidth = Math.min(310, Math.max(260, shell.width - 24));
+        card.style.width = `${cardWidth}px`;
+
+        const actualCardHeight = card.offsetHeight || 195;
+        const safeMinTop = 28;
+        const safeMaxTop = Math.max(safeMinTop, window.innerHeight - actualCardHeight - 24);
         const centeredLeft = shell.left + (shell.width - cardWidth) / 2;
-        const spaceBelow = window.innerHeight - r.bottom - 24;
-        const topPos = spaceBelow >= cardHeight
-          ? Math.min(window.innerHeight - cardHeight - 16, r.bottom + 14)
-          : Math.max(16, r.top - cardHeight - 14);
+
+        const spaceBelow = window.innerHeight - (boxTop + boxHeight) - 14;
+        const spaceAbove = boxTop - 14;
+
+        let topPos;
+        if (spaceBelow >= actualCardHeight + 12) {
+          topPos = boxTop + boxHeight + 12;
+        } else if (spaceAbove >= actualCardHeight + safeMinTop) {
+          topPos = boxTop - actualCardHeight - 12;
+        } else {
+          topPos = spaceBelow >= spaceAbove
+            ? Math.min(safeMaxTop, boxTop + boxHeight + 10)
+            : Math.max(safeMinTop, boxTop - actualCardHeight - 10);
+        }
+
+        topPos = Math.min(safeMaxTop, Math.max(safeMinTop, topPos));
 
         card.style.left = `${Math.max(12, centeredLeft)}px`;
         card.style.top = `${topPos}px`;
-      }, inView ? 10 : 280);
+      }, inView ? 20 : 320);
     }
 
     /*************************************************************************
@@ -3438,25 +3609,44 @@
       if (!btn) return;
       let holdTimer = null;
       let held = false;
+      let pointerActive = false;
 
       btn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        pointerActive = true;
         held = false;
         holdTimer = setTimeout(() => {
           held = true;
+          pointerActive = false;
           openTransactionModal('voice');
         }, 450);
       });
 
-      const release = () => {
+      const release = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         clearTimeout(holdTimer);
+        if (!pointerActive) return;
+        pointerActive = false;
         if (!held) {
-          openTransactionModal('manual');
+          setTimeout(() => {
+            openTransactionModal('manual');
+          }, 35);
         }
       };
 
       btn.addEventListener('pointerup', release);
-      btn.addEventListener('pointercancel', () => clearTimeout(holdTimer));
+      btn.addEventListener('pointercancel', () => {
+        pointerActive = false;
+        clearTimeout(holdTimer);
+      });
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
     }
 
     function startReminderScheduler() {
