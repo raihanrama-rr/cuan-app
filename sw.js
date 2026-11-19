@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cuan-pwa-v3.0.3';
+const CACHE_NAME = 'cuan-pwa-v3.0.4';
 const PRECACHE_URLS = ['/', '/index.html', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
